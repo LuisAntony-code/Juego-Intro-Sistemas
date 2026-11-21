@@ -35,8 +35,11 @@ namespace VoidformBioForge
         [Tooltip("Elemento elegido cuando el jugador es Cuidador en modos versus.")]
         public TipoElemento elementoGuardian = TipoElemento.Arbol;
 
-        [Tooltip("Nivel de Historia (1 a 5) que se va a jugar.")]
-        [Range(1, 5)] public int nivelHistoria = 1;
+        [Tooltip("Variante del linaje elegida en modos versus (Vanguardia, Control o Artillería).")]
+        public RolGuardian varianteGuardian = RolGuardian.Vanguardia;
+
+        [Tooltip("Nivel de Historia (1 a 6) que se va a jugar.")]
+        [Range(1, 6)] public int nivelHistoria = 1;
 
         [Tooltip("Jugadores humanos reales en el equipo del jugador (incluido él).")]
         [Range(1, 4)] public int jugadoresHumanosReales = 1;
@@ -67,15 +70,15 @@ namespace VoidformBioForge
         {
             if (modo == ModoJuego.Historia)
             {
-                return (BiomaPlaneta)Mathf.Clamp(nivelHistoria - 1, 0, 4);
+                return (BiomaPlaneta)Mathf.Clamp(nivelHistoria - 1, 0, 5);
             }
 
-            if (indiceBiomaVersus >= 0 && indiceBiomaVersus <= 4)
+            if (indiceBiomaVersus >= 0 && indiceBiomaVersus <= 5)
             {
                 return (BiomaPlaneta)indiceBiomaVersus;
             }
 
-            return (BiomaPlaneta)UnityEngine.Random.Range(0, 5);
+            return (BiomaPlaneta)UnityEngine.Random.Range(0, 6);
         }
 
         public ConfiguracionPartida Clonar()

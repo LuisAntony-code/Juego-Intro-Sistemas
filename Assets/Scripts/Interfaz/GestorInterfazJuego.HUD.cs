@@ -310,7 +310,7 @@ namespace VoidformBioForge
             textoIdentidad.text = $"<color={PaletaVoidform.Hex(PaletaVoidform.ColorBando(ctx.Configuracion.bandoJugador))}>{UtilidadesTipos.NombreBandoSingular(ctx.Configuracion.bandoJugador)}</color>" +
                                   $"  ·  {ctx.Arena.Datos.Nombre}";
             textoSubtituloModo.text = UtilidadesTipos.NombreModo(modo);
-            textoReloj.text = modo == ModoJuego.Historia ? $"Nivel {ctx.Configuracion.nivelHistoria}/5" : modo == ModoJuego.Conquista5Bases ? "5:00" : "Ronda 1/3";
+            textoReloj.text = modo == ModoJuego.Historia ? $"Nivel {ctx.Configuracion.nivelHistoria}/{GuardadoProgreso.NivelesTotales}" : modo == ModoJuego.Conquista5Bases ? "5:00" : "Ronda 1/3";
             ActualizarPanelCopasHUD(flujo.Clasificacion.CopasActuales, flujo.Clasificacion.RangoActual, flujo.Clasificacion.LigaActual);
 
             VincularJugadorLocal(ctx);

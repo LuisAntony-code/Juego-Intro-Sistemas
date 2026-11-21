@@ -71,10 +71,10 @@ Usa esta lista para validar que todo funciona. Cada línea indica qué hacer y q
 | 10 | Lanzar habilidades hasta vaciar el maná | Aviso **"Maná insuficiente para X: necesita N (tienes M)"**. La habilidad no se lanza. |
 | 11 | Morir en 4vs4 | **MODO ESPECTADOR**: la cámara sigue a un compañero vivo; con clic o Tab cambias de compañero. |
 | 12 | Terminar 3 rondas | Banner por ronda, marcador y, en resultados, **copas antes → después**, rango, liga y ascenso o descenso. |
-| 13 | **Modo Historia → nivel 1** como Destructor | Briefing con perspectiva, escuadrón de 4 (tú + 3 bots) y jefe Sylvaran. Barras de ecosistema y de energía extraída. |
+| 13 | **Modo Historia → nivel 1** como Destructor | Briefing con perspectiva, escuadrón de 4 (tú + 3 bots) contra 3 guardianes de Madera (Coloso Silvestre, Guardián de Corteza y Centinela de las Esporas) junto al Árbol Madre. Barras de ecosistema y de energía extraída. |
 | 14 | Ganar el nivel 1 | El nivel 2 queda desbloqueado y aparece el botón "Siguiente nivel". |
-| 15 | **Modo Historia** como Cuidador | Solo tú eres el Guardián contra 4 humanos bot. Si ganas, se desbloquea el siguiente nivel. |
-| 16 | Nivel 5 como Cuidador | Juegas con Aethernum. La tecla **F** rota entre los 4 elementos. |
+| 15 | **Modo Historia** como Cuidador | Tú (Coloso Silvestre) y un aliado IA (Guardián de Corteza) contra 4 humanos bot. Si caes y tu aliado vive, lo espectas. Si ganáis, se desbloquea el siguiente nivel. |
+| 16 | Niveles 5 y 6 como Cuidador | Juegas con un Custodio del Nexus (Eco Prismático o Aethernum). La tecla **F** rota entre Madera, Agua, Fuego y Metal. En el Nexus la gravedad es reducida (saltos más altos) y hay auroras. En el nivel 6, como humano, te enfrentas a 5 guardianes. |
 | 17 | Esc durante la partida | Pausa: Continuar, Reiniciar o Abandonar. |
 | 18 | **Clasificación** en el menú | Copas, rango, liga, racha, escudo y la fórmula. Incluye un botón para borrar el progreso. |
 

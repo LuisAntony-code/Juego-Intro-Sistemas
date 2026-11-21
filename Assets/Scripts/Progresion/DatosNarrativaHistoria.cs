@@ -23,7 +23,7 @@ namespace VoidformBioForge
 
     /// <summary>
     /// Guion del Modo Historia de Voidform: Bio-Forge.
-    /// Nivel 1: prólogo del viaje espacial. Nivel 2: los 5 niveles con sus dos perspectivas.
+    /// Nivel 1: prólogo del viaje espacial. Nivel 2: los 6 niveles con sus dos perspectivas.
     /// Nivel 3: desenlaces que dependen del bando y de la integridad ecológica lograda en la campaña.
     /// </summary>
     public static class DatosNarrativaHistoria
@@ -33,60 +33,60 @@ namespace VoidformBioForge
             "están cansados y los bosques son un recuerdo en los museos. La sonda Heliadna detecta, a 41 años luz, un " +
             "planeta que emite energía como si respirara: VOIDFORM.\n\n" +
             "La nave-arca Bio-Forge parte con diez mil personas y una promesa: traer energía suficiente para encender " +
-            "la Tierra otra vez. Al descender descubren que la fuente no es un mineral inerte, sino una red viva que " +
-            "une bosques, humedales, montañas y volcanes. Cada metro extraído se siente en todo el planeta.\n\n" +
-            "Los DESTRUCTORES —operativos con exotrajes y armas extractoras— ven la salvación de la humanidad. Los " +
-            "CUIDADORES —guardianes elementales nacidos del propio planeta— ven una herida que se abre. Nadie es " +
+            "la Tierra otra vez. Al descender descubren que la energía no es un mineral inerte, sino una red viva con cinco " +
+            "fuentes: el Árbol Madre del Bosque de los Susurros, la Turbina Abisal de las Mareas de Plasma, el Núcleo Térmico " +
+            "de la Caldera, el Monolito de Resonancia de las Agujas de Aleación y, en el centro de todo, el Corazón del Planeta " +
+            "en el Nexus Primordial. Cada metro extraído se siente en todo el planeta.\n\n" +
+            "Los DESTRUCTORES —cazadores, paladines, caballeros, tiradores y ciborgs de la expedición— ven la salvación de la " +
+            "humanidad. Los CUIDADORES —guardianes elementales nacidos del propio planeta— ven una herida que se abre. Nadie es " +
             "malvado. Todos tienen razones. Y la fuente no alcanza para todos si se la vacía.";
 
         public static NivelNarrativo ObtenerNivel(int nivel)
         {
-            switch (Mathf.Clamp(nivel, 1, 5))
+            switch (Mathf.Clamp(nivel, 1, 6))
             {
                 case 1:
                     return new NivelNarrativo
                     {
                         Numero = 1,
                         Titulo = "Nivel 1 — Raíces que Escuchan",
-                        Bioma = BiomaPlaneta.BosqueAncestral,
-                        IntroDestructor = "Escuadrón Alba, aterrizaje confirmado en el Bosque Ancestral. Los sensores marcan una " +
-                                          "concentración energética bajo las raíces. Instalad la primera extracción. Mando insiste: " +
-                                          "«la Tierra no puede esperar». Pero el bosque parece... observaros.",
-                        IntroCuidador = "Eres SYLVARAN, Custodio del Bosque Ancestral. Algo metálico cayó del cielo y ya " +
-                                        "corta tus raíces. No los odias: nunca habías visto criaturas tan asustadas. Pero si no " +
-                                        "los detienes, el bosque dejará de cantar.",
-                        ObjetivoDestructor = "Derrotad al guardián Sylvaran o extraed el 100% de la energía de la Fuente (cuanta más " +
+                        Bioma = BiomaPlaneta.BosqueSusurros,
+                        IntroDestructor = "Escuadrón Alba, aterrizaje confirmado en el Bosque de los Susurros Bioluminiscentes. Bajo la corteza " +
+                                          "translúcida late el Árbol Madre. Mando insiste: «la Tierra no puede esperar». Tres guardianes de corteza " +
+                                          "se mueven entre los troncos... y el bosque entero parece observaros.",
+                        IntroCuidador = "Eres un Coloso Silvestre. Algo metálico cayó del cielo y ya corta las raíces que alimentan al Árbol " +
+                                        "Madre. Con el Guardián de Corteza a tu lado, dos contra cuatro, debes demostrar que el bosque sabe defenderse.",
+                        ObjetivoDestructor = "Derrotad a los 3 guardianes de Madera o extraed el 100% de la energía del Árbol Madre (cuanta más " +
                                              "extraigáis, más se dañará el ecosistema).",
-                        ObjetivoCuidador = "Derrota a los 4 humanos del Escuadrón Alba antes de que vacíen la Fuente. Solo tú puedes " +
-                                           "ser el Guardián en este nivel.",
-                        VictoriaDestructor = "La primera reserva fluye hacia la órbita. Algunos árboles se apagan a vuestro paso. " +
-                                             "Un técnico pregunta en voz baja si el bosque «duele».",
-                        VictoriaCuidador = "Los humanos se repliegan a su cápsula. Sylvaran no los persigue: deja crecer un brote " +
-                                           "junto a la plataforma de aterrizaje, como quien deja una puerta abierta.",
+                        ObjetivoCuidador = "Junto a tu aliado, derrota a los 4 humanos antes de que vacíen el Árbol Madre. Para pasar de nivel debes ganarles.",
+                        VictoriaDestructor = "La savia fluye hacia la órbita. Algunos árboles se apagan a vuestro paso. Un técnico pregunta en voz " +
+                                             "baja si el bosque «duele».",
+                        VictoriaCuidador = "Los humanos se repliegan a su cápsula. El Coloso no los persigue: deja crecer un brote junto a la " +
+                                           "plataforma de aterrizaje, como quien deja una puerta abierta.",
                         DerrotaDestructor = "El escuadrón cae entre raíces que se cierran. La Bio-Forge ordena reintentar.",
-                        DerrotaCuidador = "Las perforadoras rugen. El canto del bosque se debilita... Inténtalo de nuevo.",
-                        ReflexionSocial = "La deforestación no es solo talar árboles: rompe redes vivas invisibles. Lo que se extrae " +
-                                          "en un punto se pierde en todo el sistema."
+                        DerrotaCuidador = "Las perforadoras rugen junto al Árbol Madre. El susurro del bosque se debilita... Inténtalo de nuevo.",
+                        ReflexionSocial = "La deforestación no es solo talar árboles: rompe redes vivas invisibles. Lo que se extrae en un " +
+                                          "punto se pierde en todo el sistema."
                     };
 
                 case 2:
                     return new NivelNarrativo
                     {
                         Numero = 2,
-                        Titulo = "Nivel 2 — El Espejo que se Enturbia",
-                        Bioma = BiomaPlaneta.HumedalesEspejo,
-                        IntroDestructor = "Los Humedales Espejo canalizan la energía como venas de agua. La extracción aquí es " +
-                                          "rápida... y contamina los ríos que alimentan medio continente. Los trajes Hidrostáticos " +
-                                          "están listos.",
-                        IntroCuidador = "Eres NERIVALE, Custodia de las Mareas. El agua te contó lo que pasó en el bosque. Los " +
-                                        "humanos vienen mejor preparados: han aprendido. Tú también.",
-                        ObjetivoDestructor = "Derrotad a Nerivale o completad la extracción. Cuidado con las corrientes profundas.",
-                        ObjetivoCuidador = "Expulsa a los 4 humanos de los humedales usando corrientes y mareas.",
-                        VictoriaDestructor = "Los depósitos se llenan. Río abajo, los reflejos de las lunas desaparecen del agua.",
-                        VictoriaCuidador = "Las lagunas recuperan su quietud. Nerivale devuelve a la orilla un casco humano intacto: " +
-                                           "un mensaje de que no busca matar, sino proteger.",
-                        DerrotaDestructor = "Las mareas os arrastran. Reorganizad el escuadrón.",
-                        DerrotaCuidador = "El agua se vuelve turbia. Vuelve a intentarlo, Custodia.",
+                        Titulo = "Nivel 2 — El Abismo que Respira",
+                        Bioma = BiomaPlaneta.AbismosMareas,
+                        IntroDestructor = "Los Abismos de las Mareas de Plasma esconden la Turbina Abisal, que irradia energía a medio planeta. " +
+                                          "Extraerla es rápido... y envenena las corrientes que mueven dos lunas. Tres guardianes de las mareas " +
+                                          "patrullan los puentes colgantes.",
+                        IntroCuidador = "Eres un Leviatán Abisal. El agua te contó lo que pasó en el bosque. Los humanos vienen mejor " +
+                                        "preparados: han aprendido. Tú y el Señor de las Mareas también.",
+                        ObjetivoDestructor = "Derrotad a los 3 guardianes de Agua o completad la extracción de la Turbina. Cuidado con las corrientes de plasma.",
+                        ObjetivoCuidador = "Con tu aliado, expulsa a los 4 humanos usando corrientes y mareas antes de que agoten la Turbina.",
+                        VictoriaDestructor = "Los depósitos se llenan. Río abajo, los reflejos de las dos lunas desaparecen del plasma.",
+                        VictoriaCuidador = "El océano recupera su ritmo. El Señor de las Mareas devuelve a la orilla un casco humano intacto: " +
+                                           "no busca matar, sino proteger.",
+                        DerrotaDestructor = "Las mareas os arrastran al abismo. Reorganizad el escuadrón.",
+                        DerrotaCuidador = "La Turbina se detiene. Las mareas se vuelven turbias. Vuelve a intentarlo.",
                         ReflexionSocial = "El agua conecta territorios: contaminarla en un lugar afecta a comunidades enteras aguas abajo."
                     };
 
@@ -94,69 +94,83 @@ namespace VoidformBioForge
                     return new NivelNarrativo
                     {
                         Numero = 3,
-                        Titulo = "Nivel 3 — Cicatrices de la Cordillera",
-                        Bioma = BiomaPlaneta.CordilleraFracturada,
-                        IntroDestructor = "La Cordillera ya fue perforada por la primera oleada. Las vetas de cuarzo son la energía " +
-                                          "más densa del planeta. Mando aumenta la cuota: «extracción máxima». Algunos del escuadrón " +
-                                          "dudan.",
-                        IntroCuidador = "Eres KORVHAL, Coloso de la Cordillera. Las perforadoras abandonadas aún humean en tus " +
-                                        "laderas. Recuerdas cada montaña vaciada. Esta vez, la montaña responde.",
-                        ObjetivoDestructor = "Derrotad a Korvhal o completad la extracción. Los Trajes Sísmicos resisten la tierra.",
-                        ObjetivoCuidador = "Derriba a los 4 humanos con muros y ondas sísmicas antes de que vacíen la veta.",
-                        VictoriaDestructor = "La veta principal se apaga. Un derrumbe sepulta una de vuestras perforadoras: la montaña " +
-                                             "ya no aguanta más.",
-                        VictoriaCuidador = "Los cañones vuelven al silencio. Korvhal levanta un muro alrededor de la perforadora " +
-                                           "abandonada: no para destruirla, sino para que nadie olvide la herida.",
-                        DerrotaDestructor = "La montaña se cierra sobre vosotros. Reintentad.",
-                        DerrotaCuidador = "Las vetas se apagan una a una. Vuelve a intentarlo, Coloso.",
-                        ReflexionSocial = "La minería sin límites deja cicatrices que duran siglos. La pregunta no es solo cuánto " +
-                                          "podemos extraer, sino cuánto debemos."
+                        Titulo = "Nivel 3 — La Forja Despierta",
+                        Bioma = BiomaPlaneta.CalderaForjas,
+                        IntroDestructor = "La Caldera de las Forjas Magmáticas aloja el Núcleo Térmico, la fuente más volátil del planeta. Mando " +
+                                          "exige «extracción máxima». Un Titán Ígneo, un Demonio de Magma y un Gólem de Chimenea —la forja viva del " +
+                                          "valle— guardan la fumarola.",
+                        IntroCuidador = "Eres un Titán Ígneo. La extracción térmica está despertando la Caldera: si vacían el Núcleo, el " +
+                                        "clima entero colapsará... también para ellos. El Demonio de Magma pelea a tu lado.",
+                        ObjetivoDestructor = "Derrotad a los 3 guardianes de la Caldera o completad la extracción. Los Trajes Térmicos resisten el magma.",
+                        ObjetivoCuidador = "Con tu aliado, derrota a los 4 humanos antes de que desestabilicen el Núcleo Térmico.",
+                        VictoriaDestructor = "Obtenéis la energía térmica, pero el cielo se oscurece de ceniza y las lecturas climáticas entran en rojo.",
+                        VictoriaCuidador = "La Caldera vuelve a dormir. El Titán apaga su furia y deja que un humano herido escape hacia su cápsula.",
+                        DerrotaDestructor = "El magma os rodea. Reintentad con otro escuadrón.",
+                        DerrotaCuidador = "El Núcleo Térmico ruge fuera de control. Inténtalo de nuevo.",
+                        ReflexionSocial = "Alterar los grandes reguladores naturales (volcanes, océanos, glaciares) desencadena crisis climáticas " +
+                                          "que no distinguen bandos."
                     };
 
                 case 4:
                     return new NivelNarrativo
                     {
                         Numero = 4,
-                        Titulo = "Nivel 4 — La Caldera Despierta",
-                        Bioma = BiomaPlaneta.CalderaIgnea,
-                        IntroDestructor = "La Caldera Ígnea regula el clima de todo Voidform. La extracción térmica la está " +
-                                          "despertando: la lava avanza hacia los campamentos. Algunos colonos ya no quieren seguir.",
-                        IntroCuidador = "Eres IGNARA, Centinela de la Caldera. Eres el último aviso del planeta. Si los humanos " +
-                                        "vacían el volcán, el clima entero colapsará... también para ellos.",
-                        ObjetivoDestructor = "Derrotad a Ignara o completad la extracción. Los Trajes Térmicos resisten la lava.",
-                        ObjetivoCuidador = "Derrota a los 4 humanos antes de que desestabilicen el volcán.",
-                        VictoriaDestructor = "Obtenéis la energía térmica, pero el cielo se oscurece de ceniza. Las lecturas climáticas " +
-                                             "del planeta entran en rojo.",
-                        VictoriaCuidador = "La Caldera vuelve a dormir. Ignara apaga su furia y, por primera vez, deja que un humano " +
-                                           "herido escape hacia su cápsula.",
-                        DerrotaDestructor = "La lava os rodea. Reintentad con otro equipo.",
-                        DerrotaCuidador = "El volcán ruge fuera de control. Inténtalo de nuevo, Centinela.",
-                        ReflexionSocial = "Alterar los grandes reguladores naturales (volcanes, océanos, glaciares) desencadena crisis " +
-                                          "climáticas que no distinguen bandos."
+                        Titulo = "Nivel 4 — La Ciudad que Levita",
+                        Bioma = BiomaPlaneta.AgujasAleacion,
+                        IntroDestructor = "Las Agujas de Aleación Magnética son una ciudad sin habitantes que levita sobre placas espejo. Su " +
+                                          "Monolito Central de Resonancia estabiliza el campo magnético del planeta. Tres autómatas de aleación lo " +
+                                          "custodian con precisión mecánica.",
+                        IntroCuidador = "Eres un Androide de Aleación. Si los humanos detienen el Monolito, las torres caerán y el campo " +
+                                        "magnético que protege Voidform de su sol se debilitará. El Centinela de Resonancia te cubre.",
+                        ObjetivoDestructor = "Derrotad a los 3 guardianes de Metal o completad la extracción del Monolito.",
+                        ObjetivoCuidador = "Con tu aliado, derrota a los 4 humanos antes de que silencien el zumbido del Monolito.",
+                        VictoriaDestructor = "El Monolito se ralentiza. Una torre cae a lo lejos y su eco metálico recorre la llanura espejo.",
+                        VictoriaCuidador = "El zumbido del Monolito vuelve a ser estable. Las torres retoman su levitación perfecta.",
+                        DerrotaDestructor = "El campo magnético os aplasta contra las placas. Reintentad.",
+                        DerrotaCuidador = "El zumbido se apaga y las torres tiemblan. Inténtalo de nuevo.",
+                        ReflexionSocial = "Las infraestructuras invisibles que nos protegen (campos, atmósfera, capa de ozono) solo se notan " +
+                                          "cuando fallan."
+                    };
+
+                case 5:
+                    return new NivelNarrativo
+                    {
+                        Numero = 5,
+                        Titulo = "Nivel 5 — El Santuario de la Confluencia",
+                        Bioma = BiomaPlaneta.NexusPrimordial,
+                        IntroDestructor = "El Nexus Primordial une los cuatro biomas bajo auroras multicolores y gravedad reducida. El Corazón " +
+                                          "del Planeta flota en su centro. Tres Custodios del Nexus, capaces de adoptar cualquier elemento, os esperan.",
+                        IntroCuidador = "Eres un Eco Prismático del Nexus. Llevas dentro la savia, el plasma, el magma y el metal (tecla F para " +
+                                        "rotar de elemento). Aethernum, el Corazón Vivo, combate a tu lado.",
+                        ObjetivoDestructor = "Derrotad a los 3 Custodios del Nexus o extraed el Corazón del Planeta. La gravedad reducida cambia los saltos.",
+                        ObjetivoCuidador = "Con Aethernum, derrota a los 4 humanos rotando entre los cuatro elementos.",
+                        VictoriaDestructor = "El Corazón del Planeta parpadea. Las auroras pierden un color.",
+                        VictoriaCuidador = "Los cuatro elementos se calman y las auroras recuperan todos sus colores.",
+                        DerrotaDestructor = "Los Custodios os expulsan del santuario. Reintentad.",
+                        DerrotaCuidador = "El Nexus pierde el equilibrio. Vuelve a intentarlo.",
+                        ReflexionSocial = "Los sistemas naturales están conectados: dañar uno desequilibra a todos los demás."
                     };
 
                 default:
                     return new NivelNarrativo
                     {
-                        Numero = 5,
-                        Titulo = "Nivel 5 — El Corazón del Núcleo",
-                        Bioma = BiomaPlaneta.CorazonDelNucleo,
-                        IntroDestructor = "Coordenadas finales: el Corazón del Núcleo, origen de toda la energía de Voidform. Con él " +
-                                          "se encendería la Tierra durante un siglo. Sin él, Voidform moriría. AETHERNUM, el planeta " +
-                                          "hecho guardián, os espera. La decisión final es vuestra.",
-                        IntroCuidador = "Eres AETHERNUM, el Corazón Vivo del Planeta. Llevas dentro a Sylvaran, Nerivale, Korvhal e " +
-                                        "Ignara. Puedes adoptar cualquiera de sus formas (tecla F). Los humanos llegan con todo lo que " +
-                                        "aprendieron. Defiende el origen de la vida.",
-                        ObjetivoDestructor = "Derrotad a Aethernum (que cambia de elemento) o extraed el Núcleo. Vuestra integridad " +
-                                             "ecológica acumulada decidirá el final.",
-                        ObjetivoCuidador = "Derrota a los 4 humanos en el Núcleo rotando entre los cuatro elementos.",
-                        VictoriaDestructor = "El Núcleo responde. Lo que ocurra ahora depende de cómo habéis tratado al planeta.",
-                        VictoriaCuidador = "Los cuatro elementos se calman. Aethernum habla por primera vez a los humanos: «Hay " +
-                                           "suficiente para vivir, nunca para vaciar».",
-                        DerrotaDestructor = "Aethernum os expulsa del Núcleo. Reintentad.",
-                        DerrotaCuidador = "El Núcleo parpadea. Vuelve a intentarlo, Corazón del Planeta.",
-                        ReflexionSocial = "Los recursos de un planeta son finitos. La sostenibilidad es aprender a vivir de lo que se " +
-                                          "renueva, no de lo que se agota."
+                        Numero = 6,
+                        Titulo = "Nivel 6 — Convergencia Total",
+                        Bioma = BiomaPlaneta.ConvergenciaTotal,
+                        IntroDestructor = "Los cinco escenarios se funden alrededor del Corazón del Planeta. Por primera vez, todos los linajes " +
+                                          "se reúnen: el Coloso Silvestre, el Leviatán Abisal, el Titán Ígneo, el Androide de Aleación y Aethernum. " +
+                                          "Cinco guardianes contra vuestro escuadrón. Vuestra integridad ecológica acumulada decidirá el final.",
+                        IntroCuidador = "Eres Aethernum, el Corazón Vivo del Planeta. Todos los linajes se han reunido en la Convergencia y " +
+                                        "sostienen el campo; tú y el Androide de Aleación sois quienes combatís. Defiende el origen de la vida.",
+                        ObjetivoDestructor = "Derrotad a los 5 guardianes reunidos o extraed el Corazón en plena Convergencia.",
+                        ObjetivoCuidador = "Con el Androide de Aleación, derrota a los 4 humanos en la Convergencia rotando entre los cuatro elementos.",
+                        VictoriaDestructor = "El Corazón responde. Lo que ocurra ahora depende de cómo habéis tratado al planeta.",
+                        VictoriaCuidador = "Los cinco escenarios se calman. Aethernum habla por primera vez a los humanos: «Hay suficiente para " +
+                                           "vivir, nunca para vaciar».",
+                        DerrotaDestructor = "La Convergencia os expulsa. Reintentad.",
+                        DerrotaCuidador = "El Corazón parpadea. Vuelve a intentarlo, Corazón del Planeta.",
+                        ReflexionSocial = "Los recursos de un planeta son finitos. La sostenibilidad es aprender a vivir de lo que se renueva, " +
+                                          "no de lo que se agota."
                     };
             }
         }

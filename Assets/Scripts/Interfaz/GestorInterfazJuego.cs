@@ -33,6 +33,9 @@ namespace VoidformBioForge
         private Button[] botonesTraje;
         private Button[] botonesArma;
         private Button[] botonesElemento;
+        private Button[] botonesVariante;
+        private Text textoArchivo;
+        private Button[] botonesArchivo;
         private Text textoDetalleTraje;
         private Text textoDetalleArma;
         private Text textoDetalleElemento;
@@ -250,7 +253,7 @@ namespace VoidformBioForge
             FabricaInterfaz.Anclar(columna, 0f, 0f, 1f, 1f, 70f, 90f, 70f, 400f);
 
             FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Jugar", "JUGAR", () => flujo.IrA(EstadoFlujoJuego.SeleccionBando), PaletaVoidform.AcentoVoid, 32), 84f);
-            FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Historia", "Historia y problemática social", () => flujo.IrA(EstadoFlujoJuego.HistoriaYProblematica), PaletaVoidform.PanelClaro), 66f);
+            FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Historia", "Archivo del mundo (lore, escenarios, guardianes)", () => flujo.IrA(EstadoFlujoJuego.HistoriaYProblematica), PaletaVoidform.PanelClaro), 66f);
             FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Clasificación", "Clasificación 4vs4 (copas · rango · liga)", () => flujo.IrA(EstadoFlujoJuego.Clasificacion), PaletaVoidform.PanelClaro), 66f);
             FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Controles", "Controles", () => flujo.IrA(EstadoFlujoJuego.Controles), PaletaVoidform.PanelClaro), 66f);
             FabricaInterfaz.Medidas(FabricaInterfaz.CrearBoton(columna, "Salir", "Salir", () => flujo.SalirDelJuego(), new Color(0.35f, 0.12f, 0.14f, 0.95f)), 66f);
@@ -279,8 +282,9 @@ namespace VoidformBioForge
                 PaletaVoidform.Destructor, () => flujo.ElegirBando(BandoJuego.Destructor));
 
             CrearTarjeta(fila, "CUIDADORES · Guardianes elementales",
-                "Guardianes nativos que NACEN elementales (no se transforman). Colosos en TERCERA PERSONA: Sylvaran (Árbol), Nerivale (Agua), " +
-                "Korvhal (Tierra), Ignara (Fuego) y Aethernum (Núcleo).\n\n" +
+                "Guardianes nativos que NACEN elementales (no se transforman). Colosos en TERCERA PERSONA de cinco linajes: Coloso Silvestre (Madera), " +
+                "Leviatán Abisal (Agua), Titán Ígneo (Fuego), Androide de Aleación (Metal) y los Custodios del Nexus, más el Gólem de Chimenea.\n\n" +
+                "• Más vida que cualquier humano y un poco menos de velocidad.\n" +
                 "• Golpe básico + 3 habilidades temáticas con enfriamiento.\n" +
                 "• REGLA: en modos versus usan MANÁ; sin maná suficiente no pueden lanzar la habilidad.\n" +
                 "• Más fuertes en su bioma (afinidad).\n\n" +
@@ -296,9 +300,9 @@ namespace VoidformBioForge
 
             botonesModo = new Button[3];
             botonesModo[0] = CrearTarjeta(fila, "MODO HISTORIA",
-                "Campaña de 5 niveles (Bosque, Humedales, Cordillera, Caldera y Núcleo), cada uno con su bioma y su guardián.\n\n" +
-                "• Como Humano: escuadrón de 4; los puestos libres se rellenan con bots/mods.\n" +
-                "• Como Guardián: solo tú eres el Guardián y debes vencer a los 4 humanos para avanzar.\n" +
+                "Campaña de 6 niveles: Bosque, Abismos, Caldera, Agujas, Nexus y la Convergencia Total.\n\n" +
+                "• Como Humano: escuadrón de 4 (bots/mods rellenan) contra 3 guardianes del escenario; 5 en el nivel final.\n" +
+                "• Como Guardián: tú y un guardián aliado contra 4 humanos; debes ganarles para avanzar.\n" +
                 "• El final depende del daño ecológico que causes.",
                 PaletaVoidform.AcentoVoid, () => flujo.ElegirModo(ModoJuego.Historia));
             botonesModo[1] = CrearTarjeta(fila, "CONQUISTA · 5 bases / 5:00",
@@ -337,8 +341,8 @@ namespace VoidformBioForge
             RectTransform fila = FabricaInterfaz.CrearFila(c, "Niveles", 18f, 0);
             FabricaInterfaz.Anclar(fila, 0f, 0.3f, 1f, 1f);
 
-            botonesNivel = new Button[5];
-            for (int i = 0; i < 5; i++)
+            botonesNivel = new Button[GuardadoProgreso.NivelesTotales];
+            for (int i = 0; i < GuardadoProgreso.NivelesTotales; i++)
             {
                 int nivel = i + 1;
                 NivelNarrativo n = DatosNarrativaHistoria.ObtenerNivel(nivel);
@@ -354,7 +358,7 @@ namespace VoidformBioForge
         {
             BandoJuego b = flujo.Configuracion.bandoJugador;
             int desbloqueado = GuardadoProgreso.ObtenerNivelDesbloqueado(b);
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < GuardadoProgreso.NivelesTotales; i++)
             {
                 int nivel = i + 1;
                 NivelNarrativo n = DatosNarrativaHistoria.ObtenerNivel(nivel);
@@ -364,19 +368,23 @@ namespace VoidformBioForge
                 string estado = !abierto ? "<color=#FF6B6B>BLOQUEADO</color>"
                     : integridad >= 0f ? $"<color=#7CFFB0>Superado · ecosistema {Mathf.RoundToInt(integridad)}%</color>"
                     : "<color=#FFE36B>Disponible</color>";
-                string guardian = nivel == 5 ? "Aethernum" : DatosGuardianElemental.CrearPorDefecto(GestorModoHistoria.ObtenerElementoPorNivel(nivel)).nombreGuardian;
+                int numeroGuardianes = b == BandoJuego.Destructor ? GestorModoHistoria.GuardianesDefensores(nivel).Count : 2;
+                string guardian = nivel == 6 ? "Los 5 linajes reunidos"
+                    : nivel == 5 ? "Custodios del Nexus"
+                    : GestorModoHistoria.GuardianesDefensores(nivel)[0].CrearDatos().linaje.Replace("Linaje del ", "");
 
                 Text t = botonesNivel[i].GetComponentInChildren<Text>();
                 t.text = $"<size=30><b><color={PaletaVoidform.Hex(db.ColorAcento)}>Nivel {nivel}</color></b></size>\n{n.Titulo.Replace($"Nivel {nivel} — ", "")}\n\n" +
-                         $"<color=#A9B4C8>{db.Nombre}</color>\nGuardián: {guardian}\n\n{estado}";
+                         $"<color=#A9B4C8>{db.Nombre}</color>\n<size=17>Fuente: {db.NombreFuente}\nGuardianes: {guardian} ({numeroGuardianes})</size>\n\n{estado}";
                 botonesNivel[i].interactable = abierto;
             }
 
             textoDescripcionNivel.text = b == BandoJuego.Destructor
-                ? "<b>Perspectiva Destructor:</b> escuadrón de 4 humanos (los huecos se rellenan con bots/mods) contra el guardián del bioma. " +
-                  "Ganas derrotando al guardián o extrayendo el 100% de la Fuente, pero cada punto extraído daña el ecosistema y cambia el final."
-                : "<b>Perspectiva Guardián:</b> solo tú puedes ser el Guardián del nivel. Te enfrentas a 4 humanos (bots) que aprenden: desde el nivel 2 " +
-                  "llevan el traje que resiste tu elemento. Para pasar al siguiente nivel DEBES ganarles.";
+                ? "<b>Perspectiva Destructor:</b> escuadrón de 4 humanos (los huecos se rellenan con bots/mods) contra 3 guardianes del escenario " +
+                  "(vanguardia, control y artillería) y contra 5 —uno de cada escenario— en el nivel 6. Ganas derrotándolos o extrayendo el 100% de la " +
+                  "fuente, pero cada punto extraído daña el ecosistema y cambia el final."
+                : "<b>Perspectiva Guardián:</b> tú y un guardián aliado (IA) contra 4 humanos bot que aprenden: desde el nivel 2 llevan el traje que " +
+                  "resiste tu elemento. Los guardianes tienen más vida pero algo menos de velocidad. Para pasar al siguiente nivel DEBES ganarles.";
         }
 
         // =====================================================================
@@ -427,17 +435,27 @@ namespace VoidformBioForge
             Text rotuloElem = FabricaInterfaz.CrearTexto(grupoElementos, "Rótulo elemento", "GUARDIÁN ELEMENTAL (en modos versus)", 24, PaletaVoidform.Cuidador, TextAnchor.MiddleLeft, FontStyle.Bold);
             FabricaInterfaz.Anclar((RectTransform)rotuloElem.transform, 0f, 0.92f, 1f, 1f);
             RectTransform filaElem = FabricaInterfaz.CrearFila(grupoElementos, "Fila elementos", 14f, 0);
-            FabricaInterfaz.Anclar(filaElem, 0f, 0.76f, 1f, 0.92f);
-            botonesElemento = new Button[4];
-            for (int i = 0; i < 4; i++)
+            FabricaInterfaz.Anclar(filaElem, 0f, 0.8f, 1f, 0.92f);
+            TipoElemento[] elementos = UtilidadesTipos.ElementosJugables;
+            botonesElemento = new Button[elementos.Length];
+            for (int i = 0; i < elementos.Length; i++)
             {
-                TipoElemento e = (TipoElemento)i;
+                TipoElemento e = elementos[i];
                 DatosGuardianElemental g = DatosGuardianElemental.CrearPorDefecto(e);
-                botonesElemento[i] = FabricaInterfaz.CrearBoton(filaElem, g.nombreGuardian, $"{g.nombreGuardian}\n<size=18>{UtilidadesTipos.NombreElemento(e)}</size>",
-                    () => { flujo.ElegirElemento(e); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 24);
+                botonesElemento[i] = FabricaInterfaz.CrearBoton(filaElem, g.linaje, $"{UtilidadesTipos.NombreElemento(e)}\n<size=16>{g.linaje.Replace("Linaje del ", "")}</size>",
+                    () => { flujo.ElegirElemento(e); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 22);
             }
-            textoDetalleElemento = FabricaInterfaz.CrearTexto(grupoElementos, "Detalle elemento", "", 21, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
-            FabricaInterfaz.Anclar((RectTransform)textoDetalleElemento.transform, 0f, 0.02f, 1f, 0.73f, 4f, 0f, 4f, 0f);
+            RectTransform filaVariante = FabricaInterfaz.CrearFila(grupoElementos, "Fila variantes", 14f, 0);
+            FabricaInterfaz.Anclar(filaVariante, 0f, 0.68f, 1f, 0.78f);
+            botonesVariante = new Button[3];
+            for (int i = 0; i < 3; i++)
+            {
+                RolGuardian rol = (RolGuardian)i;
+                botonesVariante[i] = FabricaInterfaz.CrearBoton(filaVariante, $"Variante {rol}", UtilidadesTipos.NombreRol(rol),
+                    () => { flujo.ElegirVarianteGuardian(rol); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 20);
+            }
+            textoDetalleElemento = FabricaInterfaz.CrearTexto(grupoElementos, "Detalle elemento", "", 19, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
+            FabricaInterfaz.Anclar((RectTransform)textoDetalleElemento.transform, 0f, 0.02f, 1f, 0.66f, 4f, 0f, 4f, 0f);
 
             // ---- Continuar ----
             Transform tarjeta = c.parent;
@@ -478,12 +496,18 @@ namespace VoidformBioForge
             {
                 for (int i = 0; i < botonesElemento.Length; i++)
                 {
-                    FabricaInterfaz.ResaltarBoton(botonesElemento[i], (TipoElemento)i == cfg.elementoGuardian, PaletaVoidform.CuidadorOscuro, PaletaVoidform.PanelProfundo);
+                    FabricaInterfaz.ResaltarBoton(botonesElemento[i], UtilidadesTipos.ElementosJugables[i] == cfg.elementoGuardian, PaletaVoidform.CuidadorOscuro, PaletaVoidform.PanelProfundo);
                 }
-                DatosGuardianElemental g = DatosGuardianElemental.CrearPorDefecto(cfg.elementoGuardian);
-                textoDetalleElemento.text = $"<size=30><b><color={PaletaVoidform.Hex(g.colorPrimario)}>{g.NombreCompleto}</color></b></size>\n" +
-                                            $"Vida {g.vidaMaxima} · Blindaje {g.blindajeMaximo} · Velocidad ×{g.multiplicadorVelocidad:0.00}\n\n" +
-                                            $"<i>{g.descripcionVisual}</i>\n<color=#A9B4C8>{g.personalidad}</color>\n\n" +
+                for (int i = 0; i < botonesVariante.Length; i++)
+                {
+                    FabricaInterfaz.ResaltarBoton(botonesVariante[i], (RolGuardian)i == cfg.varianteGuardian, PaletaVoidform.CuidadorOscuro, PaletaVoidform.PanelProfundo);
+                }
+                DatosGuardianElemental g = DatosGuardianElemental.CrearVariante(cfg.elementoGuardian, cfg.varianteGuardian);
+                textoDetalleElemento.text = $"<size=28><b><color={PaletaVoidform.Hex(g.colorPrimario)}>{g.NombreCompleto}</color></b></size>  <color=#A9B4C8>{g.linaje}</color>\n" +
+                                            $"Vida {Mathf.RoundToInt(g.vidaMaxima)} · Blindaje {Mathf.RoundToInt(g.blindajeMaximo)} · Velocidad ×{g.multiplicadorVelocidad:0.00} " +
+                                            $"· Radio de habilidades {g.radioEfecto:0.0} m\n" +
+                                            $"<i>{g.descripcionVisual}</i>\n" +
+                                            $"<color=#A9B4C8>Punto débil: {g.nucleoPuntoDebil}</color>\n" +
                                             $"<b>Clic</b> {g.nombreAtaqueBasico} (sin maná)\n" +
                                             $"<b>E</b> {g.nombreHabilidad1} — 25 maná · 4 s — {g.descripcionHabilidad1}\n" +
                                             $"<b>R</b> {g.nombreHabilidad2} — 35 maná · 7 s — {g.descripcionHabilidad2}\n" +
@@ -522,7 +546,7 @@ namespace VoidformBioForge
             botonBioma = FabricaInterfaz.CrearBoton(opciones, "Bioma", "", () =>
             {
                 int siguiente = flujo.Configuracion.indiceBiomaVersus + 1;
-                if (siguiente > 4) siguiente = -1;
+                if (siguiente > 5) siguiente = -1;
                 flujo.ElegirBiomaVersus(siguiente);
                 RefrescarSeleccionSala();
             }, PaletaVoidform.PanelClaro, 20);
@@ -631,8 +655,8 @@ namespace VoidformBioForge
 
             string perspectiva = esDestructor
                 ? $"PERSPECTIVA DESTRUCTOR · primera persona · escuadrón de 4 = {comp.HumanosReales} humano(s) real(es) + {comp.BotsHumanos} bot(s)/mod(s). " +
-                  $"Rival: guardián jefe (vida ×{comp.MultiplicadorVidaJefe:0.0}, daño ×{comp.MultiplicadorDanoJefe:0.0})."
-                : $"PERSPECTIVA GUARDIÁN · tercera persona · solo tú eres el Guardián. Rival: 4 humanos bot (precisión {Mathf.RoundToInt(comp.DificultadBots * 100)}%, " +
+                  $"Rivales: {comp.Guardianes.Count} guardianes ({comp.DescribirGuardianes()}), vida ×{comp.MultiplicadorVidaGuardianesIA:0.00} y daño ×{comp.MultiplicadorDanoGuardianesIA:0.00}."
+                : $"PERSPECTIVA GUARDIÁN · tercera persona · 2 guardianes: {comp.DescribirGuardianes()}. Rival: 4 humanos bot (precisión {Mathf.RoundToInt(comp.DificultadBots * 100)}%, " +
                   $"traje {DatosTraje.CrearPorDefecto(comp.TrajeBotsHumanos).nombreTraje}). Para avanzar DEBES ganarles.";
 
             textoBriefingTitulo.text = $"<color={PaletaVoidform.Hex(db.ColorAcento)}>{n.Titulo}</color>";
@@ -641,8 +665,9 @@ namespace VoidformBioForge
                 $"<color=#FFE36B>{perspectiva}</color>\n\n" +
                 $"{(esDestructor ? n.IntroDestructor : n.IntroCuidador)}\n\n" +
                 $"<b>Objetivo:</b> {(esDestructor ? n.ObjetivoDestructor : n.ObjetivoCuidador)}\n" +
-                "<b>Reglas:</b> los humanos no reaparecen en Historia (si caes, espectea a tu escuadrón). Caída simultánea de ambos bandos = empate y se repite el nivel." +
-                (cfg.nivelHistoria == 5 && !esDestructor ? " Pulsa F para rotar entre los cuatro elementos." : "") + "\n\n" +
+                "<b>Reglas:</b> en Historia nadie reaparece (si caes, espectea a tu equipo). Caída simultánea de ambos bandos = empate y se repite el nivel." +
+                (cfg.nivelHistoria >= 5 && !esDestructor ? " Pulsa F para rotar entre los cuatro elementos." : "") +
+                (cfg.nivelHistoria == 5 ? " Gravedad reducida: saltos más altos y caídas lentas." : "") + "\n\n" +
                 $"<color=#7CFFB0><i>Reflexión: {n.ReflexionSocial}</i></color>";
         }
 
@@ -718,7 +743,7 @@ namespace VoidformBioForge
             }
             else if (r.modo == ModoJuego.Historia)
             {
-                textoResultadoCopas.text = $"Nivel {r.nivelHistoria} de 5\n" +
+                textoResultadoCopas.text = $"Nivel {r.nivelHistoria} de {GuardadoProgreso.NivelesTotales}\n" +
                     (flujo.UltimoNivelPermiteAvanzar ? $"Nivel {r.nivelHistoria + 1} desbloqueado" : r.GanoJugadorLocal ? "¡Campaña completada!" : "Repite el nivel para avanzar");
             }
             else
@@ -734,24 +759,39 @@ namespace VoidformBioForge
         // Nivel 3: historia, controles y clasificación
         // =====================================================================
 
+        /// <summary>
+        /// Archivo del mundo (apartado de Historia del lobby): lore, escenarios y fuentes, guardianes,
+        /// arquetipos humanos y reglas de la campaña, organizados en pestañas.
+        /// </summary>
         private void ConstruirHistoriaYProblematica()
         {
-            RectTransform c = CrearPantalla(EstadoFlujoJuego.HistoriaYProblematica, "Historia y problemática social",
-                "El viaje de la Bio-Forge y el conflicto que el juego invita a pensar.", true);
-            Text izquierda = FabricaInterfaz.CrearTexto(c, "Prólogo", DatosNarrativaHistoria.Prologo, 21, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
-            FabricaInterfaz.Anclar((RectTransform)izquierda.transform, 0f, 0f, 0.48f, 1f);
-            Text derecha = FabricaInterfaz.CrearTexto(c, "Problemática",
-                "<b><color=#7CFFB0>1. Conciencia ambiental y extractivismo responsable</color></b>\n" +
-                "El juego hace visible el conflicto entre la explotación desmedida de recursos y la preservación de los ecosistemas. " +
-                "La barra de INTEGRIDAD DEL ECOSISTEMA baja con cada extracción, explosión de traje o base dominada por Destructores, y el bioma " +
-                "se marchita en pantalla. Los Destructores pueden ganar sin vaciar la Fuente: el final depende de esa decisión.\n\n" +
-                "<b><color=#FFE36B>2. Trabajo en equipo, comunicación y empatía de roles</color></b>\n" +
-                "Ningún personaje gana solo: trajes que contrarrestan elementos, guardianes que curan aliados, 4vs4 con espectador para " +
-                "aprender de los compañeros y Conquista de 5 bases en 5 minutos donde la coordinación decide el resultado. Jugar ambos " +
-                "bandos en el Modo Historia obliga a comprender las razones del otro.\n\n" +
-                "<color=#A9B4C8>La redacción formal completa para exposición o defensa del proyecto está en Docs/02_Historia_Narrativa_y_Problematica_Social.md.</color>",
-                21, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
-            FabricaInterfaz.Anclar((RectTransform)derecha.transform, 0.52f, 0f, 1f, 1f);
+            RectTransform c = CrearPantalla(EstadoFlujoJuego.HistoriaYProblematica, "Archivo del mundo",
+                "Lore, escenarios, fuentes de energía, guardianes, arquetipos humanos y reglas de la campaña.", true);
+
+            RectTransform pestanas = FabricaInterfaz.CrearFila(c, "Pestañas", 10f, 0);
+            FabricaInterfaz.Anclar(pestanas, 0f, 0.9f, 1f, 1f);
+            string[] titulos = DatosArchivoMundo.TitulosSecciones;
+            botonesArchivo = new Button[titulos.Length];
+            for (int i = 0; i < titulos.Length; i++)
+            {
+                int indice = i;
+                botonesArchivo[i] = FabricaInterfaz.CrearBoton(pestanas, titulos[i], titulos[i], () => MostrarSeccionArchivo(indice), PaletaVoidform.PanelProfundo, 19);
+            }
+
+            Image fondo = FabricaInterfaz.CrearPanel(c, "Fondo del archivo", new Color(0.03f, 0.04f, 0.08f, 0.7f));
+            FabricaInterfaz.Anclar((RectTransform)fondo.transform, 0f, 0f, 1f, 0.88f);
+            textoArchivo = FabricaInterfaz.CrearTexto(fondo.transform, "Texto del archivo", "", 18, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
+            FabricaInterfaz.Anclar((RectTransform)textoArchivo.transform, 0f, 0f, 1f, 1f, 22f, 16f, 22f, 16f);
+            MostrarSeccionArchivo(0);
+        }
+
+        private void MostrarSeccionArchivo(int indice)
+        {
+            textoArchivo.text = DatosArchivoMundo.ObtenerSeccion(indice);
+            for (int i = 0; i < botonesArchivo.Length; i++)
+            {
+                FabricaInterfaz.ResaltarBoton(botonesArchivo[i], i == indice, PaletaVoidform.PanelClaro, PaletaVoidform.PanelProfundo);
+            }
         }
 
         private void ConstruirControles()

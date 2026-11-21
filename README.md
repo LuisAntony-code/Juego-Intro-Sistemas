@@ -23,13 +23,13 @@ La guía completa de montaje, Visual Studio, pruebas, compilación y problemas f
 
 | Sistema | Contenido |
 |---|---|
-| **Bandos** | 5 trajes con resistencias cruzadas y habilidad (E). 5 armas con cargador, recarga, dispersión, retroceso y habilidad (Q). 4 guardianes elementales y Aethernum, con golpe básico y 3 habilidades. |
+| **Bandos** | 5 trajes con resistencias cruzadas y habilidad (E). 5 armas con cargador, recarga, dispersión, retroceso y habilidad (Q). 5 linajes de guardianes (Madera, Agua, Fuego, Metal y Tierra-Forja) × 3 variantes (corta, media y larga distancia) más los Custodios del Nexus. Los guardianes tienen más vida que los humanos y son un poco más lentos. |
 | **Reglas clave** | El traje humano **explota** al llegar a 0 (daño en área). Los guardianes usan **maná** en los modos versus. Hay estados alterados (raíces, ralentización, quemaduras, empujes). |
-| **Modo Historia** | 5 niveles y 5 biomas, dos perspectivas narrativas y jugables. Como humano, escuadrón de 4 rellenado con bots/mods. Como guardián juegas solo y debes vencer a los humanos para avanzar. 4 desenlaces. |
+| **Modo Historia** | 6 niveles y 6 escenarios, cada uno con su fuente de energía, y dos perspectivas narrativas y jugables. Como humano, escuadrón de 4 (rellenado con bots/mods) contra 3 guardianes, y 5 en el nivel final. Como guardián, tú y un aliado contra 4 humanos: debes vencerlos para avanzar. 4 desenlaces. |
 | **Conquista** | 5 bases y 5:00. Dominar las 5 da la victoria inmediata. Al llegar a 0:00 gana la mayoría, con desempate por tiempo de control y por influencia. Se reaparece al morir. |
 | **4vs4** | 3 rondas, modo espectador al morir, empate por muerte simultánea y empate de partida. Clasificatoria con copas, rangos y ligas, y escudo de liga. |
 | **Salas** | Crear sala, Con bots, Con amigos y Sala pública, con un proveedor de red intercambiable (`IProveedorRed`). |
-| **Mundo** | 5 biomas procedurales con peligros que afectan distinto a cada facción, una Fuente de Energía Viva y degradación visual según la integridad del ecosistema. |
+| **Mundo** | 6 escenarios procedurales (Bosque de los Susurros, Abismos de las Mareas, Caldera de las Forjas, Agujas de Aleación, Nexus Primordial y Convergencia Total) con peligros por facción, fuentes de energía con forma propia, gravedad reducida y auroras en el Nexus, y degradación visual según la integridad del ecosistema. |
 | **Presentación** | VFX procedurales (explosión de traje en 6 capas, efectos por elemento, auras, trazadores), interfaz completa con menús, HUD y resultados, y bots con IA. |
 
 ## Documentación
@@ -37,14 +37,19 @@ La guía completa de montaje, Visual Studio, pruebas, compilación y problemas f
 | Documento | Contenido |
 |---|---|
 | [`01_Montaje_Unity_y_VisualStudio.md`](Docs/01_Montaje_Unity_y_VisualStudio.md) | Instalación, Visual Studio, recorrido de prueba de 18 puntos, compilación, URP, Input System, red real y problemas frecuentes |
-| [`02_Historia_Narrativa_y_Problematica_Social.md`](Docs/02_Historia_Narrativa_y_Problematica_Social.md) | Historia completa, los 5 niveles, desenlaces y **justificación formal** de la problemática social |
+| [`02_Historia_Narrativa_y_Problematica_Social.md`](Docs/02_Historia_Narrativa_y_Problematica_Social.md) | Historia completa, los 6 niveles, desenlaces y **justificación formal** de la problemática social |
 | [`03_Diseno_de_Juego_y_Reglas.md`](Docs/03_Diseno_de_Juego_y_Reglas.md) | Todas las cifras: trajes, armas, guardianes, maná, estados, peligros, modos, casos límite, copas y salas |
 | [`04_Arte_Biomas_VFX_e_Interfaz.md`](Docs/04_Arte_Biomas_VFX_e_Interfaz.md) | Biblia de arte, biomas, VFX, degradación, pantallas y HUD, y cómo sustituir el arte provisional |
 | [`05_Arquitectura_Scripts_y_Eventos.md`](Docs/05_Arquitectura_Scripts_y_Eventos.md) | Mapa de los scripts, construcción de una partida, orden de ejecución, eventos y guía para ampliar el juego |
+| [`06_Direccion_Realista_Materiales_y_Animacion.md`](Docs/06_Direccion_Realista_Materiales_y_Animacion.md) | Paso de bloques a arte realista (madera, plasma, magma, metal, transiciones del Nexus) y animación fluida (locomoción, IK, ataques en 5 fases, habilidades) |
+| [`07_Reglas_Historia_Atributos_y_Lobby.md`](Docs/07_Reglas_Historia_Atributos_y_Lobby.md) | Reglas de enfrentamiento (3 o 5 contra 4 y 2 contra 4), tácticas de la IA, atributos guardián frente a humano y lobby |
+| [`08_Niveles_Escenarios_Fuentes_y_Guardianes.md`](Docs/08_Niveles_Escenarios_Fuentes_y_Guardianes.md) | Los 6 niveles: escenario, fuente de energía y cada guardián con su diseño, animaciones por rango, punto débil, estabilidad, sobrecarga y sinergia; Gólem de Chimenea |
+| [`09_Arquetipos_Humanos_y_Armas_Modulares.md`](Docs/09_Arquetipos_Humanos_y_Armas_Modulares.md) | Los 5 arquetipos humanos y las 5 armas modulares con sus habilidades (especificación de producción y plan de implementación) |
 
 ## Notas importantes
 
-- **Arte provisional generado por código.** Personajes, biomas, VFX e interfaz se construyen con primitivas y partículas para que el juego sea jugable sin importar assets. La documentación explica cómo sustituirlos por arte final sin tocar la lógica.
+- **Arte provisional generado por código.** El arte realista y las animaciones fluidas están especificados paso a paso en los Docs 06 y 08, pero hay que producirlos con herramientas de arte (modelado, texturizado, animación) e integrarlos. Hoy, personajes, biomas, VFX e interfaz se construyen con primitivas y partículas para que el juego sea jugable sin importar assets. La documentación explica cómo sustituirlos por arte final sin tocar la lógica.
 - **Red simulada.** Las salas funcionan con un proveedor local que simula el servidor: todos los demás puestos los ocupan bots. Para multijugador real hay que implementar `IProveedorRed`, por ejemplo con Unity Lobby + Relay + Netcode; los pasos están en la guía de montaje.
 - **AssaultCube como referencia de ritmo.** Se reinterpretaron en C# sus sensaciones de juego (movimiento ágil, ciclo de armas, dispersión, rondas). No se copió ni se tradujo su código.
+- **Arquetipos humanos y armas modulares (Doc 09):** están especificados y aparecen en el Archivo del mundo, pero el prototipo jugable aún usa los 5 trajes y las 5 armas de fuego de la versión 1. El Doc 09 incluye el plan para sustituirlos.
 - **Belerick como arquetipo.** Los guardianes toman la idea de "tanque elemental de la naturaleza" con diseño, nombres y habilidades propios.

@@ -76,22 +76,28 @@ El ciclo de armas reinterpreta el de los arena shooters clásicos: cadencia, car
 
 ### 2.4 Guardianes elementales · `DatosGuardianElemental.cs`, `ControladorGuardianElemental.cs`
 
-| Guardián | Vida / Blindaje | Velocidad | Daño base | Golpe básico (clic, sin maná, 0,65 s) |
-|---|---|---|---|---|
-| Sylvaran (Árbol) | 190 / 70 | ×0,90 | 28 | Puño de Corteza: 16 de daño, 3,2 m |
-| Nerivale (Agua) | 145 / 40 | ×1,05 | 24 | Latigazo de Corriente: 12 de daño, 5,5 m |
-| Korvhal (Tierra) | 185 / 80 | ×0,85 | 36 | Mazazo de Basalto: 20 de daño, 3,0 m |
-| Ignara (Fuego) | 140 / 35 | ×1,00 | 45 | Zarpa Ígnea: 14 de daño + Quemadura de 4/s durante 1,5 s |
-| Aethernum (Núcleo, nivel 5) | La del elemento activo ×1,15 | — | — | Rota de elemento con **F** (8 s), conserva el % de vida |
+Hay **5 linajes** (Madera, Agua, Fuego, Metal y el sub-arquetipo Tierra-Forja) con **3 variantes** cada uno (vanguardia de corta distancia, control de media y artillería de larga), más los **Custodios del Nexus**, que rotan entre los 4 elementos primarios. Todos tienen **más vida que cualquier humano y un poco menos de velocidad**. La tabla completa está en `07_Reglas_Historia_Atributos_y_Lobby.md` y las fichas, en `08_Niveles_Escenarios_Fuentes_y_Guardianes.md`.
 
-**Habilidades** (radio de efecto base = 6,5 m):
+| Linaje | Vida base | Blindaje base | Velocidad | Daño base | Golpe básico (clic, sin maná, 0,65 s) |
+|---|---|---|---|---|---|
+| Coloso Silvestre (Madera) | 190 | 70 | ×0,88 | 28 | Puño de Corteza: 16 de daño, 3,2 m |
+| Leviatán Abisal (Agua) | 160 | 45 | ×0,92 | 26 | Latigazo de Corriente: 12 de daño, 5,5 m |
+| Titán Ígneo (Fuego) | 165 | 40 | ×0,91 | 40 | Zarpa Ígnea: 14 de daño + Quemadura de 4/s durante 1,5 s |
+| Androide de Aleación (Metal) | 175 | 75 | ×0,90 | 32 | Filo de Aleación: 17 de daño, 3,4 m |
+| Gólem de Chimenea (Tierra-Forja) | 200 | 90 | ×0,87 | 34 | Puño de Yunque: 20 de daño, 3,0 m |
+| Custodios del Nexus | Los del elemento activo (Aethernum ×1,1) | — | — | — | Rotan con la tecla F |
+
+**Modificadores por rol:** vanguardia (vida ×1,1, blindaje ×1,2, radio ×0,9, golpe ×1,15) · control (radio ×1,1) · artillería (vida ×0,88, radio ×1,35, alcance del golpe +3 m).
+
+**Habilidades** (radio de efecto base = 6,5 m, modificado por el rol):
 
 | Elemento | E · Habilidad 1 | R · Habilidad 2 | Q · Definitiva (radio ×1,5, daño ×1,8) |
 |---|---|---|---|
-| Árbol | **Raíces Atrapantes**: daño en área + Enraizado 1,8 s | **Savia Regeneradora**: +32 de vida propia, +20 a aliados en 12 m, +2 de ecosistema | **Espinar del Bosque Primordial**: Enraizado 2,5 s, +40 de vida, +3 de ecosistema |
-| Agua | **Pulso Fluvial Restaurador**: +28 de vida, daño ×0,6 en radio ×0,7, +1,5 de ecosistema | **Corriente de Marea**: daño, empuje de 14 y Ralentizado al 60% durante 2,5 s | **Diluvio del Humedal**: Ralentizado al 40% durante 3,5 s, empuje, +40 de vida, +3 de ecosistema |
-| Tierra | **Golpe Sísmico de Roca**: daño ×1,15, Ralentizado al 70% durante 1,5 s, elevación | **Muralla y Temblor**: muro de roca de 6 s, +25 de blindaje, +22 de vida, daño | **Fractura Tectónica**: lanza a los enemigos y los Ralentiza al 50% durante 2 s |
-| Fuego | **Ráfaga Ígnea Abrasadora**: cono de 70°, daño ×1,3 + Quemadura de 8/s durante 3 s | **Combustión de Área**: daño ×1,4 + Quemadura de 10/s durante 3 s | **Erupción del Corazón Volcánico**: Quemadura de 12/s durante 4 s + empuje |
+| Madera | **Raíces Atrapantes**: daño en área + Enraizado 1,8 s | **Savia Regeneradora**: +32 de vida propia, +20 a aliados en 12 m, +2 de ecosistema | **Espinar del Bosque Primordial**: Enraizado 2,5 s, +40 de vida, +3 de ecosistema |
+| Agua | **Pulso Fluvial Restaurador**: +28 de vida, daño ×0,6 en radio ×0,7, +1,5 de ecosistema | **Corriente de Marea**: daño, empuje de 14 y Ralentizado al 60% durante 2,5 s | **Diluvio de Plasma**: Ralentizado al 40% durante 3,5 s, empuje, +40 de vida, +3 de ecosistema |
+| Fuego | **Ráfaga Ígnea Abrasadora**: cono de 70°, daño ×1,3 + Quemadura de 8/s durante 3 s | **Combustión de Área**: daño ×1,4 + Quemadura de 10/s durante 3 s | **Erupción del Núcleo Térmico**: Quemadura de 12/s durante 4 s + empuje |
+| Metal | **Pulso Magnético**: daño, **atracción** de 9 m/s hacia el guardián y Ralentizado al 75% durante 1,5 s | **Égida de Aleación**: +35 de blindaje temporal y descarga (daño ×0,7 en radio ×0,6) | **Tormenta de Agujas**: bloqueo magnético (Enraizado 1,2 s) y Ralentizado al 60% durante 2,5 s |
+| Tierra-Forja | **Golpe de Escoria**: daño ×1,15, Ralentizado al 70% durante 1,5 s, elevación | **Muralla de Escoria**: muro de roca de 6 s, +25 de blindaje, +22 de vida, daño | **Erupción de Chimenea**: lanza a los enemigos y los Ralentiza al 50% durante 2 s |
 
 ### 2.5 Regla del maná (solo en modos versus)
 
@@ -104,7 +110,7 @@ El ciclo de armas reinterpreta el de los arena shooters clásicos: cadencia, car
 
 - **Sin maná suficiente, la habilidad no se lanza**, **no entra en enfriamiento** y el HUD avisa: "Maná insuficiente para X: necesita N (tienes M)".
 - **En Historia no hay maná**: el guardián solo depende de los enfriamientos, porque la regla del maná es exclusiva de los modos versus.
-- **Afinidad de bioma:** el guardián cuyo elemento coincide con el bioma (o cualquiera en el Corazón del Núcleo) hace +15% de daño y regenera +25% de maná.
+- **Afinidad de bioma:** el guardián cuyo elemento coincide con el bioma (cualquiera en el Nexus y la Convergencia, y el Gólem de Chimenea en la Caldera) hace +15% de daño y regenera +25% de maná.
 
 ### 2.6 Estados alterados · `SistemaEstadosAlterados.cs`
 
@@ -121,11 +127,11 @@ Los estados **no se acumulan sin límite**: se conserva la duración más larga 
 
 | Bioma | Peligro | Destructores | Cuidadores |
 |---|---|---|---|
-| Bosque Ancestral | Claros de esporas | Ralentizados al 75% | +4 de vida/s |
-| Humedales Espejo | Corrientes profundas | Ralentizados al 60% (excepto el Traje Hidrostático) | +3 de vida/s |
-| Cordillera Fracturada | Polvo de cuarzo | 6 de daño/s de Tierra (el Traje Sísmico lo resiste) | +2 de vida/s |
-| Caldera Ígnea | Lagos de lava | 12 de daño/s de Fuego (el Traje Térmico lo resiste) | +3 de vida/s |
-| Corazón del Núcleo | Los cuatro anteriores, uno por cuadrante | Según el cuadrante | Según el cuadrante |
+| Bosque de los Susurros | Claros de esporas | Ralentizados al 75% | +4 de vida/s |
+| Abismos de las Mareas | Corrientes de plasma | Ralentizados al 60% (excepto el Traje Hidrostático) | +3 de vida/s |
+| Caldera de las Forjas | Ríos de magma | 12 de daño/s de Fuego (el Traje Térmico lo resiste) | +3 de vida/s |
+| Agujas de Aleación | Campos de inducción | 5 de daño/s de Metal (el Traje Sísmico lo resiste un 40%) y Ralentizados al 80% | +2 de vida/s |
+| Nexus Primordial (gravedad ×0,6) y Convergencia Total (gravedad ×0,8) | Los cuatro anteriores, uno por cuadrante | Según el cuadrante | Según el cuadrante |
 
 ---
 
@@ -133,17 +139,19 @@ Los estados **no se acumulan sin límite**: se conserva la duración más larga 
 
 ### 3.1 Modo Historia · `GestorModoHistoria.cs`
 
-- **5 niveles** en orden: Bosque (Sylvaran), Humedales (Nerivale), Cordillera (Korvhal), Caldera (Ignara) y Núcleo (Aethernum).
+- **6 niveles:** Bosque de los Susurros, Abismos de las Mareas, Caldera de las Forjas, Agujas de Aleación, Nexus Primordial y Convergencia Total.
 - **Composición:**
-  - *Destructor:* 4 humanos = tú + amigos reales + bots/mods hasta completar 4, contra **1 guardián jefe** con vida ×(2,4 + 0,3·(n−1)) y daño ×(1 + 0,1·(n−1)).
-  - *Cuidador:* **solo tú** eres el guardián, contra 4 humanos bot con precisión de 0,35 + 0,12·(n−1). Desde el nivel 2 llevan el **traje que contrarresta** tu elemento.
-- **Fuente de Energía Viva:** los humanos vivos en un radio de 7 m extraen **0,6 de energía por humano y por segundo**, siempre que no haya un guardián dentro (si lo hay, la fuente queda "disputada"). Cada punto de energía extraído cuesta **0,6 de integridad**.
+  - *Destructor:* 4 humanos (tú + amigos reales + bots/mods hasta completar 4) contra **3 guardianes** del escenario (vanguardia, control y artillería) en los niveles 1 a 5 y contra **5 guardianes** (uno de cada escenario) en el nivel 6. Los guardianes rivales escalan: vida ×(1 + 0,06·(n−1)), daño ×(1 + 0,05·(n−1)) y blindaje ×1,5.
+  - *Cuidador:* **2 guardianes** (tú + un aliado IA de tu linaje) contra 4 humanos bot con precisión de 0,35 + 0,1·(n−1). Desde el nivel 2, los bots llevan el **traje que contrarresta** el elemento del escenario.
+  - Tabla nivel a nivel en `07_Reglas_Historia_Atributos_y_Lobby.md`.
+- **Coordinación de la IA guardiana por roles:** la vanguardia caza abriéndose a un flanco, el control se interpone entre el enemigo y la fuente, y la artillería mantiene la distancia moviéndose en arco.
+- **Fuente de energía** (Árbol Madre, Turbina Abisal, Núcleo Térmico, Monolito de Resonancia o Corazón del Planeta): los humanos vivos en un radio de 7 m extraen **0,6 de energía por humano y por segundo**, siempre que no haya un guardián dentro. Cada punto de energía extraído cuesta **0,6 de integridad**.
 - **Victoria y derrota:**
-  - Cuidador gana = los 4 humanos eliminados. Cuidador pierde = muere el guardián o los humanos extraen el 100%.
-  - Destructor gana = guardián derrotado **o** extracción al 100%. Destructor pierde = cae todo el escuadrón.
-  - En Historia los humanos **no reaparecen**. El jugador que cae pasa a espectador.
-- **Caso límite:** si el último humano y el guardián caen en una ventana de **0,25 s** (por ejemplo, porque la explosión del traje mata al guardián), el nivel queda **empatado** y se repite.
-- **Progreso:** ganar desbloquea el siguiente nivel y guarda la integridad ecológica del nivel. Al ganar el nivel 5 se muestra el desenlace (ver `02_...md`). Si abandonas la partida, el nivel se cancela sin registrar ningún resultado.
+  - Cuidador gana = los 4 humanos eliminados. Cuidador pierde = caen todos los guardianes o los humanos extraen el 100%.
+  - Destructor gana = todos los guardianes derrotados **o** extracción al 100%. Destructor pierde = cae todo el escuadrón.
+  - En Historia **nadie reaparece**. Quien cae espectea a su equipo (también un guardián, que mira a su aliado).
+- **Caso límite:** si los últimos de cada bando caen en una ventana de **0,25 s**, el nivel queda **empatado** y se repite.
+- **Progreso:** ganar desbloquea el siguiente nivel y guarda la integridad ecológica. Al ganar el nivel 6 se muestra el desenlace. Abandonar cancela el nivel sin registrar resultado.
 
 ### 3.2 Modo Conquista (5 bases / 5 minutos) · `GestorConquista5Bases.cs`, `ZonaCapturaBase.cs`
 

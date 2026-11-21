@@ -11,7 +11,7 @@ namespace VoidformBioForge.Herramientas
     /// Utilidades del editor de Unity (menú superior "Voidform").
     /// - Crear escena jugable: genera Assets/Escenas/VoidformBioForge.unity con el GestorFlujoPartida,
     ///   la guarda y la añade a File > Build Settings.
-    /// - Crear assets de datos: genera ScriptableObjects editables de los 5 trajes, 5 armas y 4 guardianes
+    /// - Crear assets de datos: genera ScriptableObjects editables de los 5 trajes, 5 armas y 15 variantes de guardián
     ///   para que el equipo de diseño ajuste valores sin tocar código.
     /// - Borrar progreso guardado: limpia PlayerPrefs del juego (niveles, copas, integridad ecológica).
     /// </summary>
@@ -61,10 +61,14 @@ namespace VoidformBioForge.Herramientas
                 DatosArma a = DatosArma.CrearPorDefecto((TipoArma)i);
                 AssetDatabase.CreateAsset(a, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Armas/{(TipoArma)i}.asset"));
             }
-            for (int i = 0; i < 4; i++)
+            // Un asset por cada variante (vanguardia, control y artillería) de los 5 linajes jugables.
+            foreach (TipoElemento elemento in UtilidadesTipos.ElementosJugables)
             {
-                DatosGuardianElemental g = DatosGuardianElemental.CrearPorDefecto((TipoElemento)i);
-                AssetDatabase.CreateAsset(g, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Guardianes/{(TipoElemento)i}.asset"));
+                for (int r = 0; r < 3; r++)
+                {
+                    DatosGuardianElemental g = DatosGuardianElemental.CrearVariante(elemento, (RolGuardian)r);
+                    AssetDatabase.CreateAsset(g, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Guardianes/{elemento}_{(RolGuardian)r}.asset"));
+                }
             }
 
             AssetDatabase.SaveAssets();

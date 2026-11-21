@@ -34,25 +34,29 @@ Silueta humana compacta: torso de exotraje, casco con **visor emisivo horizontal
 
 Silueta de **coloso**: 1,4 veces más grande que un humano, **más ancho arriba que abajo**, hombros masivos con **runas emisivas**, brazos largos acabados en "mazas" elementales, cabeza pequeña con ojos luminosos y un **núcleo brillante en el pecho**.
 
-| Guardián | Descripción visual |
+| Linaje | Descripción visual (detalle completo en el Doc 08) |
 |---|---|
-| **Sylvaran** (Árbol) | Coloso de corteza viva de casi 3 m. Runas ámbar en los hombros que laten con la savia, **corona de musgo bioluminiscente**, cuernos-rama asimétricos, manos de raíz y una semilla-corazón verde en el pecho. |
-| **Nerivale** (Agua) | Figura esbelta de agua translúcida contenida por armadura de nácar y coral. En lugar de cabello, **una cascada que cae hacia arriba**. Peces de luz orbitan su torso. |
-| **Korvhal** (Tierra) | Gigante de placas de basalto unidas por **vetas de cuarzo ocre**. Espalda de **estratos de acantilado**, brazos desproporcionados con mazas de roca y ojos de geoda. |
-| **Ignara** (Fuego) | Obsidiana agrietada con **núcleo de magma** visible. **Melena de llamas** que pasa de naranja a azul cuando se enfurece, garras de vidrio volcánico y un halo de ceniza. |
-| **Aethernum** (Núcleo) | Entidad prismática con los cuatro elementos girando en anillos alrededor de un núcleo vivo. Adopta la forma y la paleta del elemento activo. |
+| **Coloso Silvestre** (Madera) | Corteza translúcida esmeralda con la savia visible, runas ámbar, corona de musgo bioluminiscente y semilla-corazón en el pecho. Variantes: Guardián de Corteza (escamas de corteza, raíces flexibles) y Centinela de las Esporas (dosel de hojas-panel, vainas de esporas). |
+| **Leviatán Abisal** (Agua) | Plasma añil contenido por coral sintético, mandíbula de cristal marino y aletas de estática. Variantes: Señor de las Mareas (nácar, cascada invertida) y Oráculo de la Estática (flota sobre una columna de plasma con un halo de tormenta). |
+| **Titán Ígneo** (Fuego) | Obsidiana negra con fractura concoidea y núcleo de magma visible. Variantes: Demonio de Magma (magma carmesí con costras, melena de llamas) y Heraldo de Ceniza (halo de ceniza y cristales de enfriamiento). |
+| **Androide de Aleación** (Metal) | Aleación plateada con placas que se reajustan; **levita** a pocos centímetros. Variantes: Centinela de Resonancia (anillos concéntricos) y Autómata de Precisión (brazo-riel y lente que se estrecha). |
+| **Gólem de Chimenea** (Tierra-Forja) | Placas claras con remaches oscuros, chimenea humeante con llamas naranjas y antebrazo con núcleo incandescente. |
+| **Custodios del Nexus** | Piedra translúcida atravesada por las cuatro corrientes; los anillos cambian de material según la forma activa (Eco Prismático, Aethernum y Vigía Aural). |
 
 En código (`Modelos/ConstructorModelosPersonajes.cs`) cada guardián tiene su **rasgo distintivo** (cuernos y corona, cascada invertida, estratos, melena de llamas) y un **aura de partículas** de su elemento (`FabricaEfectosVisuales.CrearAuraElemental`).
 
-### 2.3 Los 5 biomas · `Entornos/DatosBioma.cs`, `Entornos/GeneradorBiomas.cs`
+### 2.3 Los 6 escenarios · `Entornos/DatosBioma.cs`, `Entornos/GeneradorBiomas.cs`
 
-| Bioma | Paleta (suelo · acento · niebla) | Coberturas | Peligro |
-|---|---|---|---|
-| **Bosque Ancestral** | verde musgo · verde lima · verde niebla | Troncos gigantes con copas bioluminiscentes, troncos caídos | Claros de esporas |
-| **Humedales Espejo** | azul pizarra · celeste · azul bruma | Rocas pulidas, arcos de manglar, juncos | Corrientes profundas |
-| **Cordillera Fracturada** | ocre · ámbar · polvo marrón | Pilares de roca, vetas de cuarzo, **perforadoras humanas abandonadas** (narrativa ambiental) | Polvo de cuarzo |
-| **Caldera Ígnea** | negro ceniza · naranja magma · humo rojizo | Agujas de obsidiana con grietas de magma, columnas de basalto | Lagos de lava |
-| **Corazón del Núcleo** | violeta · lavanda · índigo | Pilones cristalinos de los 4 colores, mezcla de los 4 estilos por cuadrante | Los cuatro peligros |
+| Escenario | Paleta (suelo · acento · niebla) | Coberturas | Fuente | Peligro |
+|---|---|---|---|---|
+| **Bosque de los Susurros Bioluminiscentes** | violeta · turquesa · verde bruma | Árboles de corteza translúcida, raíces sin enterrar sobre vetas violetas, hojas-panel | Árbol Madre | Claros de esporas |
+| **Abismos de las Mareas de Plasma** | añil · azul eléctrico · azul bruma | Plataformas de coral sintético, cristal marino, puentes colgantes que se mecen | Turbina Abisal | Corrientes de plasma |
+| **Caldera de las Forjas Magmáticas** | negro obsidiana · naranja magma · humo rojizo | Agujas de obsidiana con grietas de magma, cristales de enfriamiento rápido, respiraderos de vapor | Núcleo Térmico | Ríos de magma |
+| **Agujas de Aleación Magnética** | plata · azul pálido · gris violáceo | Placas tectónicas espejo y torres de aleación que levitan | Monolito Central de Resonancia | Campos de inducción |
+| **Nexus Primordial** | piedra clara · lavanda · índigo | Columnas de piedra translúcida, canales de plasma, enredaderas petrificadas, filamentos conductores; gravedad ×0,6 y auroras | Corazón del Planeta | Los cuatro, por cuadrante |
+| **Convergencia Total** | mezcla de los cinco | Cuadrantes de los cuatro biomas y anillo central del Nexus; gravedad ×0,8 y auroras | Corazón del Planeta | Los cuatro, por cuadrante |
+
+La guía de materiales realistas de cada escenario está en `06_Direccion_Realista_Materiales_y_Animacion.md` y su ficha completa, en el Doc 08.
 
 **Disposición de la arena (110 × 110 m):** zona de aterrizaje humana al **sur** (plataforma, cápsula de descenso y torres de focos) y santuario elemental al **norte** (arco de piedras rúnicas). Coberturas con **simetría central**, para que ningún equipo tenga ventaja. 5 bases en (±26, ±16) y en el centro, y la **Fuente de Energía Viva** en el centro.
 

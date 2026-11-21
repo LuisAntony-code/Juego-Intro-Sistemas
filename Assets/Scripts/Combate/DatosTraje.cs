@@ -36,6 +36,7 @@ namespace VoidformBioForge
         public float resistenciaAgua = 1f;
         public float resistenciaTierra = 1f;
         public float resistenciaFuego = 1f;
+        public float resistenciaMetal = 1f;
         [Tooltip("Si es verdadero, el traje no puede ser empujado por corrientes u ondas.")]
         public bool inmuneEmpuje = false;
         [Tooltip("Porcentaje en que se reduce la duración de los estados alterados recibidos.")]
@@ -50,6 +51,7 @@ namespace VoidformBioForge
                 case TipoDano.Arbol: return resistenciaArbol;
                 case TipoDano.Agua: return resistenciaAgua;
                 case TipoDano.Tierra: return resistenciaTierra;
+                case TipoDano.Metal: return resistenciaMetal;
                 default: return resistenciaFuego;
             }
         }
@@ -60,10 +62,11 @@ namespace VoidformBioForge
             string texto = "";
             AgregarLinea(ref texto, "Cinético", resistenciaCinetico);
             AgregarLinea(ref texto, "Explosivo", resistenciaExplosivo);
-            AgregarLinea(ref texto, "Árbol", resistenciaArbol);
+            AgregarLinea(ref texto, "Madera", resistenciaArbol);
             AgregarLinea(ref texto, "Agua", resistenciaAgua);
             AgregarLinea(ref texto, "Tierra", resistenciaTierra);
             AgregarLinea(ref texto, "Fuego", resistenciaFuego);
+            AgregarLinea(ref texto, "Metal", resistenciaMetal);
             if (inmuneEmpuje) texto += "Inmune al empuje. ";
             if (reduccionDuracionEstados > 0f) texto += $"Estados alterados -{Mathf.RoundToInt(reduccionDuracionEstados * 100f)}%. ";
             return string.IsNullOrEmpty(texto) ? "Sin resistencias especiales (todoterreno)." : texto.Trim();
@@ -134,9 +137,11 @@ namespace VoidformBioForge
                     datos.descripcion = "Placas reactivas pesadas para la Cordillera Fracturada. Las raíces se cuelan entre sus juntas.";
                     datos.vidaMaxima = 120f;
                     datos.blindajeMaximo = 80f;
-                    datos.multiplicadorVelocidad = 0.88f;
+                    // 0,95: los humanos SIEMPRE son un poco más rápidos que cualquier guardián (máx. 0,92).
+                    datos.multiplicadorVelocidad = 0.95f;
                     datos.colorTraje = new Color(0.55f, 0.5f, 0.45f);
                     datos.resistenciaTierra = 0.55f;
+                    datos.resistenciaMetal = 0.6f;
                     datos.resistenciaExplosivo = 0.8f;
                     datos.resistenciaArbol = 1.25f;
                     datos.nombreHabilidad = "Placas Reactivas";
@@ -175,6 +180,7 @@ namespace VoidformBioForge
                 case TipoElemento.Arbol: return TipoTraje.PodadorBiotecnico;
                 case TipoElemento.Agua: return TipoTraje.HidrostaticoAnclado;
                 case TipoElemento.Tierra: return TipoTraje.SismicoBlindado;
+                case TipoElemento.Metal: return TipoTraje.SismicoBlindado;
                 default: return TipoTraje.TermicoIgnifugo;
             }
         }

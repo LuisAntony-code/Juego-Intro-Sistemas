@@ -256,6 +256,23 @@ namespace VoidformBioForge
                     }, centro + Vector3.up * 0.3f, null);
                     break;
 
+                case TipoElemento.Metal:
+                    // Chispas plateadas con gravedad + arcos de estática azul-blanca.
+                    CrearSistema(new ParametrosParticulas
+                    {
+                        Nombre = "VFX Metal Chispas", ColorInicio = new Color(0.9f, 0.95f, 1f), ColorFin = new Color(0.5f, 0.6f, 0.75f, 0f),
+                        VidaMin = 0.3f, VidaMax = 0.7f, VelocidadMin = 6f, VelocidadMax = 14f, TamanoMin = 0.04f, TamanoMax = 0.1f,
+                        Rafaga = cantidad, RadioForma = 0.4f, Gravedad = 1.5f
+                    }, centro + Vector3.up * 0.8f, null);
+                    CrearSistema(new ParametrosParticulas
+                    {
+                        Nombre = "VFX Metal Estática", ColorInicio = new Color(0.55f, 0.75f, 1f), ColorFin = new Color(0.8f, 0.9f, 1f, 0f),
+                        VidaMin = 0.1f, VidaMax = 0.25f, VelocidadMin = 0.5f, VelocidadMax = 2f, TamanoMin = 0.3f, TamanoMax = 0.7f,
+                        Rafaga = cantidad / 2, RadioForma = escala * 0.7f
+                    }, centro + Vector3.up * 0.6f, null);
+                    LuzEfimera.Crear(centro + Vector3.up, new Color(0.6f, 0.8f, 1f), 3f, escala * 2f, 0.15f);
+                    break;
+
                 default:
                     // Llamarada + brasas ascendentes.
                     CrearSistema(new ParametrosParticulas

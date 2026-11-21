@@ -5,6 +5,30 @@ using UnityEngine;
 
 namespace VoidformBioForge
 {
+    /// <summary>Un guardián concreto que participa en un nivel de Historia.</summary>
+    public struct EspecGuardian
+    {
+        public TipoElemento Elemento;
+        public RolGuardian Rol;
+        public bool RotaElementos;
+        public bool EsJugador;
+
+        public EspecGuardian(TipoElemento elemento, RolGuardian rol, bool rotaElementos)
+        {
+            Elemento = elemento;
+            Rol = rol;
+            RotaElementos = rotaElementos;
+            EsJugador = false;
+        }
+
+        public DatosGuardianElemental CrearDatos()
+        {
+            return RotaElementos ? DatosGuardianElemental.CrearNexus(Elemento, Rol) : DatosGuardianElemental.CrearVariante(Elemento, Rol);
+        }
+
+        public string Nombre => CrearDatos().nombreGuardian;
+    }
+
     /// <summary>
     /// Cuántos personajes y de qué tipo forman un nivel de Historia según la perspectiva elegida.
     /// </summary>
@@ -13,38 +37,50 @@ namespace VoidformBioForge
         public bool JugadorEsGuardian;
         public int HumanosReales;
         public int BotsHumanos;
-        public int GuardianesIA;
-        public TipoElemento ElementoGuardian;
-        public bool GuardianRotaElementos;
-        public float MultiplicadorVidaJefe;
-        public float MultiplicadorDanoJefe;
+        public List<EspecGuardian> Guardianes;
+        public float MultiplicadorVidaGuardianesIA;
+        public float MultiplicadorDanoGuardianesIA;
         public float DificultadBots;
         public TipoTraje TrajeBotsHumanos;
+
+        public string DescribirGuardianes()
+        {
+            if (Guardianes == null || Guardianes.Count == 0) return "";
+            string texto = "";
+            foreach (EspecGuardian g in Guardianes)
+            {
+                if (texto.Length > 0) texto += ", ";
+                texto += g.Nombre + (g.EsJugador ? " (tú)" : "");
+            }
+            return texto;
+        }
     }
 
     /// <summary>
-    /// Gestiona el Modo Historia de 5 niveles con cambio de bioma, elección de bando y distintas perspectivas.
+    /// Gestiona el Modo Historia de 6 niveles con cambio de escenario, elección de bando y distintas perspectivas.
     /// -----------------------------------------------------------------
-    /// Nivel 1: 5 niveles (Bosque, Humedales, Cordillera, Caldera y Núcleo) y elección de bando.
-    /// Nivel 2: REGLAS DE PARTICIPACIÓN:
-    ///   • Humano (Destructor): siempre se juega con un escuadrón de 4 humanos; los puestos que no ocupen
-    ///     jugadores reales se rellenan automáticamente con bots/mods. Su rival es el guardián del bioma.
-    ///   • Guardián (Cuidador): SOLO el jugador puede ser Guardián en ese nivel; se enfrenta a 4 humanos
-    ///     controlados por bots y, para pasar al siguiente nivel, DEBE GANARLES.
-    ///   Perspectiva jugable: Destructor en primera persona (ritmo de arena shooter); Guardián en tercera
-    ///   persona (coloso elemental). Perspectiva narrativa: textos distintos para cada bando.
+    /// Nivel 1: 6 niveles (Bosque de los Susurros, Abismos de las Mareas, Caldera de las Forjas, Agujas de Aleación,
+    ///          Nexus Primordial y Convergencia Total) y elección de bando.
+    /// Nivel 2: REGLAS DE ENFRENTAMIENTO:
+    ///   • Bando humano (Destructor): escuadrón de 4 humanos (jugadores reales + bots/mods hasta completar 4)
+    ///     contra 3 GUARDIANES del elemento del escenario en los niveles 1 a 5 (una variante de cada rol:
+    ///     vanguardia, control y artillería), y contra 5 GUARDIANES en el nivel 6 (uno de cada escenario).
+    ///   • Bando guardián (Cuidador): 2 GUARDIANES (el jugador + un aliado de su linaje controlado por la IA)
+    ///     contra 4 humanos bot. Para pasar de nivel hay que ganarles.
+    ///   • Atributos: todo guardián tiene más vida que cualquier humano y un poco menos de velocidad.
+    ///   Perspectiva jugable: Destructor en primera persona; Guardián en tercera persona.
     /// Nivel 3: validación de victoria y avance:
-    ///   • Victoria Cuidador = los 4 humanos eliminados. Derrota = el guardián cae o los humanos extraen el 100%.
-    ///   • Victoria Destructor = guardián derrotado o extracción al 100% (con coste ecológico).
-    ///     Derrota = los 4 humanos eliminados (los humanos no reaparecen en Historia; el jugador caído espectea).
-    ///   • Muerte simultánea del último humano y del guardián (ventana de 0,25 s) = EMPATE: se repite el nivel.
-    ///   • Escalado por nivel: el jefe guardián gana vida y daño; los bots humanos ganan precisión y, desde el
-    ///     nivel 2, eligen el traje que contrarresta al elemento del bioma (los humanos "aprenden").
-    ///   • Se guarda la integridad ecológica de cada nivel; al completar el nivel 5 se muestra el desenlace.
+    ///   • Victoria Cuidador = los 4 humanos eliminados. Derrota = caen todos los guardianes o los humanos extraen el 100%.
+    ///   • Victoria Destructor = todos los guardianes derrotados o extracción al 100% (con coste ecológico).
+    ///     Derrota = los 4 humanos eliminados (en Historia nadie reaparece; quien cae espectea a su equipo).
+    ///   • Muerte simultánea del último de cada bando (ventana de 0,25 s) = EMPATE: se repite el nivel.
+    ///   • Escalado por nivel: los guardianes IA ganan vida y daño; los bots humanos ganan precisión y, desde el
+    ///     nivel 2, eligen el traje que contrarresta al elemento del escenario (los humanos "aprenden").
+    ///   • Se guarda la integridad ecológica de cada nivel; al completar el nivel 6 se muestra el desenlace.
     /// </summary>
     public class GestorModoHistoria : MonoBehaviour
     {
-        [SerializeField] private int totalNiveles = 5;
+        [SerializeField] private int totalNiveles = GuardadoProgreso.NivelesTotales;
         [SerializeField] private int cupoHumanosEnModoHistoria = 4;
         [SerializeField] private int jugadoresHumanosRealesConectados = 1;
         [SerializeField] private float ventanaMuerteSimultaneaSegundos = 0.25f;
@@ -57,7 +93,7 @@ namespace VoidformBioForge
         public int NivelActual { get; private set; } = 1;
         public BandoJuego BandoElegido { get; private set; } = BandoJuego.Destructor;
         public TipoElemento ElementoNivelActual { get; private set; } = TipoElemento.Arbol;
-        public BiomaPlaneta BiomaActual { get; private set; } = BiomaPlaneta.BosqueAncestral;
+        public BiomaPlaneta BiomaActual { get; private set; } = BiomaPlaneta.BosqueSusurros;
         public int BotsModsRellenados { get; private set; }
         public string DescripcionPerspectiva { get; private set; } = "";
         public NivelNarrativo Narrativa { get; private set; }
@@ -74,31 +110,97 @@ namespace VoidformBioForge
         // Nivel 1-2: preparación del nivel
         // =====================================================================
 
+        /// <summary>Elemento principal del escenario (en el Nexus y la Convergencia, los guardianes rotan).</summary>
         public static TipoElemento ObtenerElementoPorNivel(int nivel)
         {
             switch (nivel)
             {
                 case 1: return TipoElemento.Arbol;
                 case 2: return TipoElemento.Agua;
-                case 3: return TipoElemento.Tierra;
-                case 4: return TipoElemento.Fuego;
-                default: return TipoElemento.Arbol; // Nivel 5: Aethernum empieza en forma de Árbol y rota.
+                case 3: return TipoElemento.Fuego;
+                case 4: return TipoElemento.Metal;
+                default: return TipoElemento.Arbol;
             }
+        }
+
+        /// <summary>
+        /// Guardianes que defienden cada escenario cuando el jugador es HUMANO:
+        /// niveles 1-5 → 3 guardianes del linaje del escenario (vanguardia, control y artillería);
+        /// nivel 6 → 5 guardianes, uno de cada escenario anterior.
+        /// </summary>
+        public static List<EspecGuardian> GuardianesDefensores(int nivel)
+        {
+            List<EspecGuardian> lista = new List<EspecGuardian>();
+            switch (Mathf.Clamp(nivel, 1, GuardadoProgreso.NivelesTotales))
+            {
+                case 3:
+                    // La Caldera: dos variantes del linaje Fuego y el Gólem de Chimenea (sub-arquetipo Tierra-Forja
+                    // nacido en las forjas del valle) ocupando la plaza de artillería.
+                    lista.Add(new EspecGuardian(TipoElemento.Fuego, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Fuego, RolGuardian.Control, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Tierra, RolGuardian.Artilleria, false));
+                    break;
+                case 5:
+                    lista.Add(new EspecGuardian(TipoElemento.Arbol, RolGuardian.Vanguardia, true));
+                    lista.Add(new EspecGuardian(TipoElemento.Agua, RolGuardian.Control, true));
+                    lista.Add(new EspecGuardian(TipoElemento.Fuego, RolGuardian.Artilleria, true));
+                    break;
+                case 6:
+                    lista.Add(new EspecGuardian(TipoElemento.Arbol, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Agua, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Fuego, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Metal, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(TipoElemento.Metal, RolGuardian.Control, true));
+                    break;
+                default:
+                    TipoElemento e = ObtenerElementoPorNivel(nivel);
+                    lista.Add(new EspecGuardian(e, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(e, RolGuardian.Control, false));
+                    lista.Add(new EspecGuardian(e, RolGuardian.Artilleria, false));
+                    break;
+            }
+            return lista;
+        }
+
+        /// <summary>
+        /// Pareja de guardianes cuando el jugador es GUARDIÁN: el primero es el jugador y el segundo su aliado IA.
+        /// </summary>
+        public static List<EspecGuardian> ParejaDelJugadorGuardian(int nivel)
+        {
+            List<EspecGuardian> lista = new List<EspecGuardian>();
+            switch (Mathf.Clamp(nivel, 1, GuardadoProgreso.NivelesTotales))
+            {
+                case 5:
+                    lista.Add(new EspecGuardian(TipoElemento.Arbol, RolGuardian.Vanguardia, true));
+                    lista.Add(new EspecGuardian(TipoElemento.Agua, RolGuardian.Control, true));
+                    break;
+                case 6:
+                    lista.Add(new EspecGuardian(TipoElemento.Arbol, RolGuardian.Control, true));
+                    lista.Add(new EspecGuardian(TipoElemento.Metal, RolGuardian.Vanguardia, false));
+                    break;
+                default:
+                    TipoElemento e = ObtenerElementoPorNivel(nivel);
+                    lista.Add(new EspecGuardian(e, RolGuardian.Vanguardia, false));
+                    lista.Add(new EspecGuardian(e, RolGuardian.Control, false));
+                    break;
+            }
+            EspecGuardian jugador = lista[0];
+            jugador.EsJugador = true;
+            lista[0] = jugador;
+            return lista;
         }
 
         /// <summary>Calcula quién juega el nivel sin crear nada (la usa la interfaz y el GestorFlujoPartida).</summary>
         public ComposicionNivelHistoria CalcularComposicion(int nivel, BandoJuego bando, int humanosRealesConectados)
         {
             nivel = Mathf.Clamp(nivel, 1, totalNiveles);
+            TipoElemento principal = ObtenerElementoPorNivel(nivel);
             ComposicionNivelHistoria c = new ComposicionNivelHistoria
             {
-                ElementoGuardian = ObtenerElementoPorNivel(nivel),
-                GuardianRotaElementos = nivel == 5,
-                GuardianesIA = 0,
-                MultiplicadorVidaJefe = 1f,
-                MultiplicadorDanoJefe = 1f,
-                DificultadBots = Mathf.Clamp01(0.35f + 0.12f * (nivel - 1)),
-                TrajeBotsHumanos = nivel == 1 ? TipoTraje.CineticoAsalto : DatosTraje.TrajeContrario(ObtenerElementoPorNivel(nivel))
+                MultiplicadorVidaGuardianesIA = 1f,
+                MultiplicadorDanoGuardianesIA = 1f,
+                DificultadBots = Mathf.Clamp01(0.35f + 0.1f * (nivel - 1)),
+                TrajeBotsHumanos = nivel == 1 || nivel >= 5 ? TipoTraje.CineticoAsalto : DatosTraje.TrajeContrario(principal)
             };
 
             if (bando == BandoJuego.Destructor)
@@ -106,17 +208,17 @@ namespace VoidformBioForge
                 c.JugadorEsGuardian = false;
                 c.HumanosReales = Mathf.Clamp(humanosRealesConectados, 1, cupoHumanosEnModoHistoria);
                 c.BotsHumanos = cupoHumanosEnModoHistoria - c.HumanosReales;
-                c.GuardianesIA = 1;
-                c.MultiplicadorVidaJefe = 2.4f + 0.3f * (nivel - 1);
-                c.MultiplicadorDanoJefe = 1f + 0.1f * (nivel - 1);
+                c.Guardianes = GuardianesDefensores(nivel);
+                // 3 guardianes con más vida que los humanos ya equilibran el 4 contra 3; el escalado es suave.
+                c.MultiplicadorVidaGuardianesIA = 1f + 0.06f * (nivel - 1);
+                c.MultiplicadorDanoGuardianesIA = 1f + 0.05f * (nivel - 1);
             }
             else
             {
-                // Regla: solo el jugador puede ser Guardián; los demás jugadores reales no ocupan ese rol.
                 c.JugadorEsGuardian = true;
                 c.HumanosReales = 0;
                 c.BotsHumanos = cupoHumanosEnModoHistoria;
-                c.GuardianesIA = 0;
+                c.Guardianes = ParejaDelJugadorGuardian(nivel);
             }
             return c;
         }
@@ -137,20 +239,20 @@ namespace VoidformBioForge
 
             ComposicionNivelHistoria c = CalcularComposicion(NivelActual, bando, humanosReales);
             BotsModsRellenados = c.BotsHumanos;
-            string nombreGuardian = NivelActual == 5 ? "Aethernum" : DatosGuardianElemental.CrearPorDefecto(ElementoNivelActual).nombreGuardian;
 
             if (BandoElegido == BandoJuego.Destructor)
             {
                 DescripcionPerspectiva =
                     $"Perspectiva Destructor (Nivel {NivelActual}/{totalNiveles} - {DatosBioma.Obtener(BiomaActual).Nombre}): " +
-                    $"escuadrón humano de {cupoHumanosEnModoHistoria} ({c.HumanosReales} humano(s) + {c.BotsHumanos} bot(s)/mod(s)) " +
-                    $"extrayendo energía frente a {nombreGuardian}. Vista en primera persona.";
+                    $"escuadrón de {cupoHumanosEnModoHistoria} ({c.HumanosReales} humano(s) + {c.BotsHumanos} bot(s)/mod(s)) contra " +
+                    $"{c.Guardianes.Count} guardianes: {c.DescribirGuardianes()}. Vista en primera persona.";
             }
             else
             {
                 DescripcionPerspectiva =
-                    $"Perspectiva Guardián Cuidador (Nivel {NivelActual}/{totalNiveles} - {nombreGuardian}): solo tú juegas como " +
-                    $"Guardián; debes derrotar a los {c.BotsHumanos} humanos para pasar al siguiente nivel. Vista en tercera persona.";
+                    $"Perspectiva Guardián (Nivel {NivelActual}/{totalNiveles} - {DatosBioma.Obtener(BiomaActual).Nombre}): " +
+                    $"2 guardianes ({c.DescribirGuardianes()}) contra {c.BotsHumanos} humanos. Debes ganarles para avanzar. " +
+                    "Vista en tercera persona.";
             }
 
             humanos.Clear();
@@ -221,7 +323,10 @@ namespace VoidformBioForge
         {
             if (!nivelEnCurso) return;
 
-            if (caido.EsJugadorLocal && caido.Bando == BandoJuego.Destructor && !TodosMuertos(humanos))
+            // Quien cae en Historia no reaparece: si su equipo sigue en pie, espectea a sus compañeros
+            // (humanos de su escuadrón o el guardián aliado).
+            List<SistemaSaludYTraje> equipoPropio = caido.Bando == BandoJuego.Destructor ? humanos : guardianes;
+            if (caido.EsJugadorLocal && !TodosMuertos(equipoPropio))
             {
                 AlCambiarModoEspectador?.Invoke(true);
             }

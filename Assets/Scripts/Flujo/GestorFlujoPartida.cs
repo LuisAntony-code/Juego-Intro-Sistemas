@@ -158,7 +158,7 @@ namespace VoidformBioForge
                 BusEventosJuego.PublicarMensaje($"El nivel {nivel} está bloqueado: supera antes el nivel {desbloqueado}.", TipoMensajeSistema.Advertencia);
                 return false;
             }
-            configuracion.nivelHistoria = Mathf.Clamp(nivel, 1, 5);
+            configuracion.nivelHistoria = Mathf.Clamp(nivel, 1, GuardadoProgreso.NivelesTotales);
             IrA(configuracion.bandoJugador == BandoJuego.Destructor ? EstadoFlujoJuego.Personalizacion : EstadoFlujoJuego.Briefing);
             return true;
         }
@@ -166,7 +166,8 @@ namespace VoidformBioForge
         public void ElegirTraje(TipoTraje traje) => configuracion.trajeDestructor = traje;
         public void ElegirArma(TipoArma arma) => configuracion.armaPrincipal = arma;
         public void ElegirElemento(TipoElemento elemento) => configuracion.elementoGuardian = elemento;
-        public void ElegirBiomaVersus(int indice) => configuracion.indiceBiomaVersus = Mathf.Clamp(indice, -1, 4);
+        public void ElegirBiomaVersus(int indice) => configuracion.indiceBiomaVersus = Mathf.Clamp(indice, -1, 5);
+        public void ElegirVarianteGuardian(RolGuardian rol) => configuracion.varianteGuardian = rol;
         public void ElegirDificultadBots(float dificultad) => configuracion.dificultadBots = Mathf.Clamp01(dificultad);
 
         public void ContinuarDesdePersonalizacion()
@@ -255,7 +256,7 @@ namespace VoidformBioForge
         public void SiguienteNivel()
         {
             if (configuracion.modo != ModoJuego.Historia || !UltimoNivelPermiteAvanzar) return;
-            configuracion.nivelHistoria = Mathf.Clamp(configuracion.nivelHistoria + 1, 1, 5);
+            configuracion.nivelHistoria = Mathf.Clamp(configuracion.nivelHistoria + 1, 1, GuardadoProgreso.NivelesTotales);
             IrA(EstadoFlujoJuego.Briefing);
         }
 
@@ -367,24 +368,49 @@ namespace VoidformBioForge
                 if (esLocal) AsignarLocal(ctx, h);
             }
 
-            // Guardián del bioma: el jugador (perspectiva Cuidador) o un jefe controlado por la IA.
-            Vector3 posGuardian = comp.JugadorEsGuardian ? ctx.Arena.AparicionCuidadores[0] : fuente + new Vector3(0f, 1.1f, 9f);
-            string nombreGuardian = comp.GuardianRotaElementos ? "Aethernum" : DatosGuardianElemental.CrearPorDefecto(comp.ElementoGuardian).nombreGuardian;
-            SistemaSaludYTraje g = CrearGuardian(comp.JugadorEsGuardian ? $"Tú ({nombreGuardian})" : nombreGuardian, comp.JugadorEsGuardian,
-                posGuardian, ctx.Arena, comp.ElementoGuardian, comp.GuardianRotaElementos, false, bioma,
-                ObjetivoBot.DefenderFuente, Mathf.Clamp01(0.4f + 0.12f * (nivel - 1)), fuente);
-
-            ControladorGuardianElemental cg = g.GetComponent<ControladorGuardianElemental>();
-            if (!comp.JugadorEsGuardian)
+            // Guardianes: 3 (o 5 en el nivel 6) controlados por la IA si el jugador es humano,
+            // o 2 (el jugador + un aliado IA) si el jugador es guardián.
+            float dificultadGuardianes = Mathf.Clamp01(0.4f + 0.1f * (nivel - 1));
+            for (int i = 0; i < comp.Guardianes.Count; i++)
             {
-                cg.EstablecerEscaladoJefe(comp.MultiplicadorVidaJefe, comp.MultiplicadorDanoJefe);
+                EspecGuardian espec = comp.Guardianes[i];
+                Vector3 posicion = espec.EsJugador || comp.JugadorEsGuardian
+                    ? ctx.Arena.AparicionCuidadores[i]
+                    : PosicionDefensiva(fuente, i, comp.Guardianes.Count);
+                string nombreBase = espec.Nombre;
+                string nombre = espec.EsJugador ? $"Tú ({nombreBase})" : nombreBase;
+
+                SistemaSaludYTraje g = CrearGuardian(nombre, espec.EsJugador, posicion, ctx.Arena, espec.Elemento, espec.Rol,
+                    espec.RotaElementos, false, bioma, ObjetivoParaRol(espec.Rol), dificultadGuardianes, fuente);
+
+                if (!comp.JugadorEsGuardian)
+                {
+                    g.GetComponent<ControladorGuardianElemental>().EstablecerEscaladoJefe(comp.MultiplicadorVidaGuardianesIA, comp.MultiplicadorDanoGuardianesIA);
+                }
+                ctx.EquipoCuidadores.Add(g);
+                if (espec.EsJugador) AsignarLocal(ctx, g);
             }
-            ctx.EquipoCuidadores.Add(g);
-            if (comp.JugadorEsGuardian) AsignarLocal(ctx, g);
 
             ctx.Arena.Fuente.EstablecerExtraccionActiva(true);
             Historia.RegistrarParticipantes(ctx.EquipoDestructores, ctx.EquipoCuidadores);
             ctx.Historia = Historia;
+        }
+
+        /// <summary>Reparte a los guardianes defensores en abanico alrededor de la fuente, del lado norte.</summary>
+        private static Vector3 PosicionDefensiva(Vector3 fuente, int indice, int total)
+        {
+            float t = total <= 1 ? 0.5f : indice / (float)(total - 1);
+            float angulo = Mathf.Lerp(-60f, 60f, t) * Mathf.Deg2Rad;
+            return fuente + new Vector3(Mathf.Sin(angulo) * 11f, 1.1f, Mathf.Cos(angulo) * 11f);
+        }
+
+        /// <summary>
+        /// Coordinación por roles: la vanguardia sale a cazar y cubre los flancos; el control y la artillería
+        /// defienden la fuente (la artillería, además, mantiene la distancia; ver ControladorBotIA).
+        /// </summary>
+        private static ObjetivoBot ObjetivoParaRol(RolGuardian rol)
+        {
+            return rol == RolGuardian.Vanguardia ? ObjetivoBot.CazarEnemigos : ObjetivoBot.DefenderFuente;
         }
 
         private void CrearEquiposVersus(ContextoPartida ctx, int porEquipo, ObjetivoBot objetivo)
@@ -408,9 +434,11 @@ namespace VoidformBioForge
             for (int i = 0; i < porEquipo; i++)
             {
                 bool esLocal = configuracion.bandoJugador == BandoJuego.Cuidador && i == 0;
-                TipoElemento elemento = esLocal ? configuracion.elementoGuardian : (TipoElemento)((i + desfase) % 4);
-                string nombre = esLocal ? "Tú" : $"[Bot] {DatosGuardianElemental.CrearPorDefecto(elemento).nombreGuardian}";
-                SistemaSaludYTraje c = CrearGuardian(nombre, esLocal, ctx.Arena.AparicionCuidadores[i], ctx.Arena, elemento, false, true, bioma,
+                TipoElemento elemento = esLocal ? configuracion.elementoGuardian
+                    : UtilidadesTipos.ElementosJugables[(i + desfase) % UtilidadesTipos.ElementosJugables.Length];
+                RolGuardian rol = esLocal ? configuracion.varianteGuardian : (RolGuardian)(i % 3);
+                string nombre = esLocal ? "Tú" : $"[Bot] {DatosGuardianElemental.CrearVariante(elemento, rol).nombreGuardian}";
+                SistemaSaludYTraje c = CrearGuardian(nombre, esLocal, ctx.Arena.AparicionCuidadores[i], ctx.Arena, elemento, rol, false, true, bioma,
                     objetivo, configuracion.dificultadBots, fuente);
                 ctx.EquipoCuidadores.Add(c);
                 if (esLocal) AsignarLocal(ctx, c);
@@ -479,10 +507,10 @@ namespace VoidformBioForge
         }
 
         private SistemaSaludYTraje CrearGuardian(string nombre, bool esLocal, Vector3 posicion, DescripcionArena arena, TipoElemento elemento,
-            bool rotaElementos, bool modoVersus, BiomaPlaneta bioma, ObjetivoBot objetivo, float dificultad, Vector3 fuente)
+            RolGuardian rol, bool rotaElementos, bool modoVersus, BiomaPlaneta bioma, ObjetivoBot objetivo, float dificultad, Vector3 fuente)
         {
             GameObject go = CrearBasePersonaje(nombre, true, posicion, arena);
-            DatosGuardianElemental datos = DatosGuardianElemental.CrearPorDefecto(elemento);
+            DatosGuardianElemental datos = rotaElementos ? DatosGuardianElemental.CrearNexus(elemento, rol) : DatosGuardianElemental.CrearVariante(elemento, rol);
             ConstructorModelosPersonajes.ConstruirGuardian(go.transform, elemento, datos.colorPrimario, datos.colorSecundario);
 
             SistemaSaludYTraje salud = go.AddComponent<SistemaSaludYTraje>();
@@ -494,10 +522,12 @@ namespace VoidformBioForge
 
             ControladorGuardianElemental guardian = go.AddComponent<ControladorGuardianElemental>();
             guardian.EstablecerRotacionElementos(rotaElementos);
-            guardian.ConfigurarElementoParaNivel(elemento);
+            guardian.ConfigurarGuardian(elemento, rol);
             guardian.EstablecerModoVersus(modoVersus);
             DatosBioma db = DatosBioma.Obtener(bioma);
-            guardian.EstablecerAfinidadBioma(bioma == BiomaPlaneta.CorazonDelNucleo || (db.TieneElemento && db.Elemento == elemento));
+            bool escenarioConvergente = bioma == BiomaPlaneta.NexusPrimordial || bioma == BiomaPlaneta.ConvergenciaTotal;
+            bool golemEnSuForja = elemento == TipoElemento.Tierra && bioma == BiomaPlaneta.CalderaForjas;
+            guardian.EstablecerAfinidadBioma(escenarioConvergente || golemEnSuForja || (db.TieneElemento && db.Elemento == elemento));
 
             if (esLocal) go.AddComponent<EntradaJugadorLocal>();
             else go.AddComponent<ControladorBotIA>().Configurar(objetivo, dificultad, fuente);
@@ -696,7 +726,7 @@ namespace VoidformBioForge
             if (!mostrarFondoAnimadoEnMenus || camaraPrincipal == null) return;
 
             raizFondoMenu = new GameObject("Fondo animado del menú");
-            BiomaPlaneta bioma = (BiomaPlaneta)UnityEngine.Random.Range(0, 5);
+            BiomaPlaneta bioma = (BiomaPlaneta)UnityEngine.Random.Range(0, 6);
             DescripcionArena arena = GeneradorBiomas.Generar(raizFondoMenu.transform, bioma, Environment.TickCount);
             camaraPrincipal.backgroundColor = arena.Datos.ColorCielo;
             camaraPrincipal.fieldOfView = 60f;

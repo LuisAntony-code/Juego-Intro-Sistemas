@@ -7,17 +7,18 @@
 | **Título** | Voidform: Bio-Forge |
 | **Plataforma y motor** | Unity con C#, desarrollado en Visual Studio y ampliado con Claude Code |
 | **Género** | Shooter de arena asimétrico (Destructores en 1.ª persona) contra guardianes elementales (Cuidadores en 3.ª persona) |
-| **Premisa** | La Tierra agotó su energía. La nave-arca *Bio-Forge* viaja hasta Voidform, un exoplaneta cuya fuente de energía es una **red viva** repartida en biomas (Árbol, Agua, Tierra y Fuego). Los **Destructores** quieren extraerla para salvar a la humanidad. Los **Cuidadores**, guardianes elementales nativos, quieren preservarla porque sostiene toda la vida del planeta. |
+| **Premisa** | La Tierra agotó su energía. La nave-arca *Bio-Forge* viaja hasta Voidform, un exoplaneta cuya fuente de energía es una **red viva** repartida en biomas (Madera, Agua, Fuego y Metal). Los **Destructores** quieren extraerla para salvar a la humanidad. Los **Cuidadores**, guardianes elementales nativos, quieren preservarla porque sostiene toda la vida del planeta. |
 
 ### Los dos bandos
 
 - **Destructores (humanos).** Operativos con exotrajes y armas extractoras. Su ritmo de juego, ágil y directo, se inspira en la sensación de partida de los arena shooters clásicos como AssaultCube, reinterpretada en C# con identidad propia. Cada traje y cada arma dan una habilidad.
 - **Cuidadores (guardianes elementales).** No son humanos transformados: **nacen elementales**. Como arquetipo toman la contundencia y el vínculo con la naturaleza de un guardián tanque (inspiración en Belerick), pero sus siluetas, runas, nombres y habilidades son propios:
-  - **Sylvaran**, Custodio del Bosque Ancestral (Árbol).
-  - **Nerivale**, Custodia de las Mareas (Agua).
-  - **Korvhal**, Coloso de la Cordillera (Tierra).
-  - **Ignara**, Centinela de la Caldera (Fuego).
-  - **Aethernum**, el Corazón Vivo del Planeta, que reúne los cuatro elementos.
+  - **Linaje del Coloso Silvestre** (Madera): Coloso Silvestre, Guardián de Corteza y Centinela de las Esporas.
+  - **Linaje del Leviatán Abisal** (Agua): Leviatán Abisal, Señor de las Mareas y Oráculo de la Estática.
+  - **Linaje del Titán Ígneo** (Fuego): Titán Ígneo, Demonio de Magma y Heraldo de Ceniza, más el **Gólem de Chimenea** (sub-arquetipo Tierra-Forja nacido en la Caldera).
+  - **Linaje del Androide de Aleación** (Metal): Androide de Aleación, Centinela de Resonancia y Autómata de Precisión.
+  - **Custodios del Nexus**: Eco Prismático, **Aethernum** (el Corazón Vivo del Planeta) y Vigía Aural, que reúnen los cuatro elementos.
+  - Fichas completas en `08_Niveles_Escenarios_Fuentes_y_Guardianes.md`.
 
 ---
 
@@ -33,10 +34,11 @@
 
 Al entrar en órbita y descender, la expedición descubre que la fuente no es un mineral inerte. Es una **red energética viva y sensible**, unida a los ecosistemas:
 
-- **Bosques frondosos (Árbol):** raíces que conducen energía como nervios.
-- **Ríos y humedales (Agua):** venas de agua que la distribuyen.
-- **Cordilleras y cañones (Tierra):** vetas de cuarzo que la almacenan.
-- **Regiones volcánicas (Fuego):** el regulador térmico de todo el planeta.
+- **El Bosque de los Susurros Bioluminiscentes (Madera):** raíces que conducen energía como nervios hasta el Árbol Madre.
+- **Los Abismos de las Mareas de Plasma (Agua):** un océano denso cuya Turbina Abisal reparte la energía en pulsos.
+- **La Caldera de las Forjas Magmáticas (Fuego):** el Núcleo Térmico, regulador térmico y fuente más volátil del planeta.
+- **Las Agujas de Aleación Magnética (Metal):** el Monolito Central de Resonancia, que estabiliza el campo magnético.
+- **El Nexus Primordial:** el Corazón del Planeta, que unifica las cuatro corrientes.
 
 Cada metro que se extrae se siente en todo el planeta.
 
@@ -44,22 +46,24 @@ Cada metro que se extrae se siente en todo el planeta.
 
 Los **Destructores** ven en esa energía la salvación de la humanidad y despliegan exotrajes y armas para extraerla, aunque la extracción destruya el hábitat. Los **Cuidadores**, guardianes nativos del equilibrio, se levantan para frenar la destrucción. **Nadie es malvado. Todos tienen razones.** La fuente alcanza para todos, pero solo si no se vacía.
 
-### 2.4 Los cinco niveles y sus perspectivas
+### 2.4 Los seis niveles y sus perspectivas
 
-Cada nivel tiene dos guiones completos: perspectiva Destructor y perspectiva Cuidador. Están escritos en `DatosNarrativaHistoria.cs` y se muestran en el *briefing* y en los resultados.
+Cada nivel tiene dos guiones completos: perspectiva Destructor y perspectiva Cuidador. Están escritos en `DatosNarrativaHistoria.cs` y se muestran en el *briefing* y en los resultados. La ficha visual y de combate de cada nivel está en `08_Niveles_Escenarios_Fuentes_y_Guardianes.md`.
 
-| Nivel | Título | Bioma | Guardián | Perspectiva Destructor | Perspectiva Cuidador | Reflexión social |
-|---|---|---|---|---|---|---|
-| 1 | Raíces que Escuchan | Bosque Ancestral | Sylvaran | El escuadrón Alba aterriza: «la Tierra no puede esperar». | Unas criaturas asustadas cortan tus raíces. | La deforestación rompe redes vivas invisibles. |
-| 2 | El Espejo que se Enturbia | Humedales Espejo | Nerivale | La extracción rápida contamina los ríos de medio continente. | Los humanos han aprendido. Tú también. | El agua conecta territorios: contaminar aguas arriba afecta a quien vive aguas abajo. |
-| 3 | Cicatrices de la Cordillera | Cordillera Fracturada | Korvhal | El mando exige «extracción máxima» y algunos dudan. | La montaña recuerda cada mina. | La minería sin límites deja cicatrices durante siglos. |
-| 4 | La Caldera Despierta | Caldera Ígnea | Ignara | La lava avanza sobre los campamentos y los colonos dudan. | Eres el último aviso del planeta. | Alterar los grandes reguladores naturales provoca crisis climáticas. |
-| 5 | El Corazón del Núcleo | Corazón del Núcleo | Aethernum | El Núcleo encendería la Tierra durante un siglo. Sin él, Voidform muere. | Llevas dentro a los cuatro guardianes. | Los recursos son finitos: hay que vivir de lo que se renueva. |
+| Nivel | Título | Escenario y fuente | Guardianes (bando humano) | Reflexión social |
+|---|---|---|---|---|
+| 1 | Raíces que Escuchan | Bosque de los Susurros · Árbol Madre | Coloso Silvestre, Guardián de Corteza, Centinela de las Esporas | La deforestación rompe redes vivas invisibles. |
+| 2 | El Abismo que Respira | Abismos de las Mareas de Plasma · Turbina Abisal | Leviatán Abisal, Señor de las Mareas, Oráculo de la Estática | El agua conecta territorios: contaminar aguas arriba afecta a quien vive aguas abajo. |
+| 3 | La Forja Despierta | Caldera de las Forjas Magmáticas · Núcleo Térmico | Titán Ígneo, Demonio de Magma, Gólem de Chimenea | Alterar los grandes reguladores naturales provoca crisis climáticas. |
+| 4 | La Ciudad que Levita | Agujas de Aleación Magnética · Monolito Central de Resonancia | Androide de Aleación, Centinela de Resonancia, Autómata de Precisión | Las infraestructuras invisibles que nos protegen solo se notan cuando fallan. |
+| 5 | El Santuario de la Confluencia | Nexus Primordial · Corazón del Planeta | Eco Prismático, Aethernum, Vigía Aural (rotan de elemento) | Dañar un sistema natural desequilibra a todos los demás. |
+| 6 | Convergencia Total | Los 5 escenarios combinados · Corazón del Planeta | 5 guardianes, uno de cada escenario | Los recursos son finitos: hay que vivir de lo que se renueva. |
 
 ### 2.5 Reglas de participación del Modo Historia
 
-- **Si eliges Humano (Destructor):** se juega siempre con un escuadrón de **4 humanos**. Los puestos que no ocupan jugadores reales se rellenan automáticamente con **bots/mods**. El rival es el guardián del bioma, que actúa como jefe y escala con el nivel.
-- **Si eliges Guardián (Cuidador):** **solo tú puedes ser el Guardián** de ese nivel. Te enfrentas a 4 humanos bot y, **para avanzar al siguiente nivel, debes ganarles.** Desde el nivel 2 los humanos se adaptan: llevan el traje que resiste tu elemento.
+- **Si eliges Humano (Destructor):** se juega siempre con un escuadrón de **4 humanos** (los puestos libres se rellenan con **bots/mods**) contra **3 guardianes** del escenario en los niveles 1 a 5 y contra **5 guardianes**, uno de cada escenario, en el nivel 6.
+- **Si eliges Guardián (Cuidador):** **2 guardianes** (tú y un aliado de tu linaje controlado por la IA) contra 4 humanos bot. **Para avanzar al siguiente nivel, debes ganarles.** Desde el nivel 2 los humanos se adaptan: llevan el traje que resiste tu elemento.
+- **Atributos:** los guardianes tienen más vida que los humanos y una velocidad un poco menor. Detalle en `07_Reglas_Historia_Atributos_y_Lobby.md`.
 
 ---
 
@@ -67,7 +71,7 @@ Cada nivel tiene dos guiones completos: perspectiva Destructor y perspectiva Cui
 
 ### 3.1 Desenlaces según el bando
 
-El final del Modo Historia depende del bando y de la **integridad ecológica media** que dejaste en los niveles ganados (se guarda con `GuardadoProgreso`):
+El final del Modo Historia depende del bando y de la **integridad ecológica media** que dejaste en los 6 niveles ganados (se guarda con `GuardadoProgreso`):
 
 | Bando | Integridad media | Desenlace | Mensaje |
 |---|---|---|---|

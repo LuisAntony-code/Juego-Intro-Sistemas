@@ -31,13 +31,29 @@ namespace VoidformBioForge
 
     /// <summary>
     /// Elementos asociados a los biomas y a los personajes guardianes de los Cuidadores.
+    /// Arbol = Madera (Bosque de los Susurros), Agua (Abismos de las Mareas de Plasma),
+    /// Fuego (Caldera de las Forjas Magmáticas), Metal (Agujas de Aleación Magnética) y
+    /// Tierra = sub-arquetipo Tierra-Forja (Gólem de Chimenea, nacido en la Caldera).
+    /// El orden de los cuatro primeros valores se conserva por compatibilidad con datos guardados.
     /// </summary>
     public enum TipoElemento
     {
         Arbol,
         Agua,
         Tierra,
-        Fuego
+        Fuego,
+        Metal
+    }
+
+    /// <summary>
+    /// Rol táctico de cada variante de guardián dentro de su linaje elemental.
+    /// Vanguardia = corta distancia, Control = media distancia, Artilleria = larga distancia.
+    /// </summary>
+    public enum RolGuardian
+    {
+        Vanguardia,
+        Control,
+        Artilleria
     }
 
     /// <summary>
@@ -76,7 +92,8 @@ namespace VoidformBioForge
         Arbol,
         Agua,
         Tierra,
-        Fuego
+        Fuego,
+        Metal
     }
 
     /// <summary>
@@ -159,16 +176,18 @@ namespace VoidformBioForge
     }
 
     /// <summary>
-    /// Los 5 biomas del exoplaneta. Los cuatro primeros pertenecen a un elemento;
-    /// el quinto (Corazón del Núcleo) une los cuatro y es el escenario del clímax.
+    /// Los 6 escenarios del exoplaneta (uno por nivel del Modo Historia).
+    /// Los cuatro primeros pertenecen a un elemento; el Nexus Primordial une los cuatro y la
+    /// Convergencia Total combina los cinco escenarios anteriores en el enfrentamiento final.
     /// </summary>
     public enum BiomaPlaneta
     {
-        BosqueAncestral,
-        HumedalesEspejo,
-        CordilleraFracturada,
-        CalderaIgnea,
-        CorazonDelNucleo
+        BosqueSusurros,
+        AbismosMareas,
+        CalderaForjas,
+        AgujasAleacion,
+        NexusPrimordial,
+        ConvergenciaTotal
     }
 
     /// <summary>
@@ -220,7 +239,30 @@ namespace VoidformBioForge
                 case TipoElemento.Arbol: return TipoDano.Arbol;
                 case TipoElemento.Agua: return TipoDano.Agua;
                 case TipoElemento.Tierra: return TipoDano.Tierra;
+                case TipoElemento.Metal: return TipoDano.Metal;
                 default: return TipoDano.Fuego;
+            }
+        }
+
+        /// <summary>Los cuatro elementos primarios entre los que rota la energía del Nexus.</summary>
+        public static readonly TipoElemento[] ElementosPrimarios =
+        {
+            TipoElemento.Arbol, TipoElemento.Agua, TipoElemento.Fuego, TipoElemento.Metal
+        };
+
+        /// <summary>Todos los elementos jugables (incluido el sub-arquetipo Tierra-Forja).</summary>
+        public static readonly TipoElemento[] ElementosJugables =
+        {
+            TipoElemento.Arbol, TipoElemento.Agua, TipoElemento.Fuego, TipoElemento.Metal, TipoElemento.Tierra
+        };
+
+        public static string NombreRol(RolGuardian rol)
+        {
+            switch (rol)
+            {
+                case RolGuardian.Vanguardia: return "Vanguardia (corta distancia)";
+                case RolGuardian.Control: return "Control (media distancia)";
+                default: return "Artillería (larga distancia)";
             }
         }
 
@@ -238,9 +280,10 @@ namespace VoidformBioForge
         {
             switch (elemento)
             {
-                case TipoElemento.Arbol: return "Árbol";
+                case TipoElemento.Arbol: return "Madera";
                 case TipoElemento.Agua: return "Agua";
-                case TipoElemento.Tierra: return "Tierra";
+                case TipoElemento.Tierra: return "Tierra-Forja";
+                case TipoElemento.Metal: return "Metal";
                 default: return "Fuego";
             }
         }
@@ -368,6 +411,7 @@ namespace VoidformBioForge
         public static readonly Color Agua = new Color(0.25f, 0.65f, 1f, 1f);
         public static readonly Color Tierra = new Color(0.78f, 0.58f, 0.34f, 1f);
         public static readonly Color Fuego = new Color(1f, 0.42f, 0.1f, 1f);
+        public static readonly Color Metal = new Color(0.72f, 0.82f, 0.95f, 1f);
 
         public static Color ColorBando(BandoJuego bando)
         {
@@ -381,6 +425,7 @@ namespace VoidformBioForge
                 case TipoElemento.Arbol: return Arbol;
                 case TipoElemento.Agua: return Agua;
                 case TipoElemento.Tierra: return Tierra;
+                case TipoElemento.Metal: return Metal;
                 default: return Fuego;
             }
         }

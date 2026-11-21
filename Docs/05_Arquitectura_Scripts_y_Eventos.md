@@ -19,24 +19,25 @@ Todo el código está en el espacio de nombres `VoidformBioForge` (las herramien
 | | `DatosArma.cs`, `DatosTraje.cs` | ScriptableObjects con el catálogo oficial (`CrearPorDefecto`) |
 | | `InformacionDano.cs` | Estructura de un golpe (cantidad, tipo, atacante, origen) |
 | | `ModeloArmaPrimeraPersona.cs` | Arma visible en 1.ª persona con retroceso, balanceo y animación de recarga |
-| `Guardianes/` | `DatosGuardianElemental.cs` | Fichas de Sylvaran, Nerivale, Korvhal, Ignara y Aethernum |
+| `Guardianes/` | `DatosGuardianElemental.cs` | 5 linajes × 3 variantes (vanguardia, control y artillería) y los Custodios del Nexus |
 | | `ControladorGuardianElemental.cs` | Golpe básico, 3 habilidades, **maná**, enfriamientos, afinidad, jefe de nivel y rotación de elementos |
-| | `MuroDeRocaElemental.cs` | Muro temporal de Korvhal |
+| | `MuroDeRocaElemental.cs` | Muro temporal del Gólem de Chimenea (Muralla de Escoria) |
 | `IA/` | `ControladorBotIA.cs` | Bots/mods de ambos bandos que escriben en `EntradaPersonaje` |
 | `Modos/` | `ZonaCapturaBase.cs` | Una base: captura, disputa, dominio y visual |
 | | `GestorConquista5Bases.cs` | 5 bases y 5 minutos: reaparición, victoria inmediata, mayoría y desempates |
 | | `GestorModo4vs4.cs` | 3 rondas, espectador, muerte simultánea, tiempo límite y empates |
 | | `CamaraEspectador.cs` | Cámara que sigue a los compañeros vivos |
-| `Progresion/` | `GestorModoHistoria.cs` | 5 niveles, composición por perspectiva, victoria del guardián, avance y desenlace |
-| | `DatosNarrativaHistoria.cs` | Prólogo, guiones de los 5 niveles por bando y desenlaces |
+| `Progresion/` | `GestorModoHistoria.cs` | 6 niveles; 3 o 5 guardianes contra 4 humanos y 2 guardianes contra 4; victoria, avance y desenlace |
+| | `DatosNarrativaHistoria.cs` | Prólogo, guiones de los 6 niveles por bando y desenlaces |
+| | `DatosArchivoMundo.cs` | Contenido del Archivo del mundo del lobby (lore, escenarios, guardianes, arquetipos y reglas) |
 | | `GestorSalasYEmparejamiento.cs` | Salas (crear, bots, amigos, pública), `IProveedorRed` y proveedor local simulado |
 | | `SistemaClasificacionYCopas.cs` | Copas, rango, liga, racha y escudo |
 | `Entornos/` | `DatosBioma.cs` | Arte, luz, niebla y peligro de cada bioma |
-| | `GeneradorBiomas.cs` | Arena procedural, aparición de equipos, bases, coberturas, peligros y degradación |
+| | `GeneradorBiomas.cs` | Los 6 escenarios procedurales, aparición de equipos, bases, coberturas, peligros, gravedad, auroras (`AuroraCielo`), puentes (`BalanceoPorOleaje`) y degradación |
 | | `ZonaAmbientalBioma.cs` | Peligro que afecta distinto a cada facción |
 | | `FuenteEnergiaViva.cs` | Núcleo central: extracción, disputa y visual según la integridad |
 | | `GestorEquilibrioEcosistema.cs` | Integridad del ecosistema y energía extraída |
-| `Modelos/` | `ConstructorModelosPersonajes.cs` | Modelos provisionales de humanos y guardianes + `ModeloVisualPersonaje` |
+| `Modelos/` | `ConstructorModelosPersonajes.cs` | Modelos provisionales de humanos y guardianes + `ModeloVisualPersonaje` + `LevitacionMagnetica` |
 | `VFX/` | `MaterialesProcedurales.cs` | Materiales compatibles con Built-in, URP y HDRP |
 | | `FabricaEfectosVisuales.cs` | Todos los VFX + `AutodestruirTrasTiempo`, `LuzEfimera`, `LineaDesvanecida`, `AnilloOndaExpansivo` y `SacudidaCamara` |
 | `Interfaz/` | `FabricaInterfaz.cs` | Lienzo, paneles redondeados, textos, botones, barras y campos |

@@ -20,6 +20,18 @@ namespace VoidformBioForge
     [RequireComponent(typeof(EntradaPersonaje))]
     public class ControladorMovimientoAssaultCube : MonoBehaviour
     {
+        /// <summary>
+        /// Multiplicador de gravedad del escenario (1 = normal). El Nexus Primordial usa 0,6: los saltos
+        /// describen parábolas más altas y largas y las caídas son más lentas. Lo fija GeneradorBiomas.
+        /// </summary>
+        public static float MultiplicadorGravedadAmbiente { get; set; } = 1f;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ReiniciarGravedad()
+        {
+            MultiplicadorGravedadAmbiente = 1f;
+        }
+
         [Header("1. Parámetros Básicos de Movimiento")]
         [SerializeField] private float velocidadBase = 10.5f;
         [SerializeField] private float fuerzaSalto = 7.8f;
@@ -192,7 +204,7 @@ namespace VoidformBioForge
             }
             else if (!enSuelo)
             {
-                velocidadVertical += gravedad * Time.deltaTime;
+                velocidadVertical += gravedad * MultiplicadorGravedadAmbiente * Time.deltaTime;
             }
 
             // ================== NIVEL 3: Fuerzas externas ==================

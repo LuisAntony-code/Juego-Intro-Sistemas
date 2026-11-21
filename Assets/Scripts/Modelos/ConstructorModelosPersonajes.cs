@@ -153,10 +153,24 @@ namespace VoidformBioForge
                     CrearPieza(t, PrimitiveType.Cylinder, new Vector3(0f, 1.45f, 0f), new Vector3(1.3f, 0.03f, 1.3f), Vector3.zero, modelo, CapaPrimaria);
                     break;
                 case TipoElemento.Tierra:
-                    // Estratos de acantilado en la espalda.
-                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0f, 1.9f, -0.45f), new Vector3(1.1f, 0.35f, 0.3f), new Vector3(10f, 0f, 0f), modelo, CapaPrimaria);
-                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0f, 1.5f, -0.5f), new Vector3(0.9f, 0.3f, 0.3f), new Vector3(-8f, 0f, 0f), modelo, CapaPrimaria);
-                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0f, 1.7f, -0.62f), new Vector3(0.6f, 0.05f, 0.05f), Vector3.zero, modelo, CapaEmisiva);
+                    // Gólem de Chimenea: placas claras con remaches oscuros, chimenea humeante en el hombro
+                    // izquierdo y núcleo incandescente en el antebrazo derecho.
+                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0f, 1.6f, 0.36f), new Vector3(0.9f, 0.7f, 0.1f), Vector3.zero, modelo, CapaPrimaria);
+                    for (int r = 0; r < 4; r++)
+                    {
+                        CrearPieza(t, PrimitiveType.Sphere, new Vector3(-0.35f + r * 0.23f, 1.92f, 0.42f), Vector3.one * 0.07f, Vector3.zero, modelo, CapaSecundaria);
+                    }
+                    CrearPieza(t, PrimitiveType.Cylinder, new Vector3(-0.7f, 2.65f, -0.2f), new Vector3(0.28f, 0.45f, 0.28f), Vector3.zero, modelo, CapaSecundaria);
+                    CrearPieza(t, PrimitiveType.Sphere, new Vector3(-0.7f, 3.12f, -0.2f), new Vector3(0.24f, 0.18f, 0.24f), Vector3.zero, modelo, CapaEmisiva);
+                    CrearPieza(t, PrimitiveType.Sphere, new Vector3(1.05f, 1.05f, 0.32f), Vector3.one * 0.26f, Vector3.zero, modelo, CapaEmisiva);
+                    break;
+                case TipoElemento.Metal:
+                    // Androide de Aleación: anillos de resonancia, placas flotantes y lente frontal.
+                    CrearPieza(t, PrimitiveType.Cylinder, new Vector3(0f, 1.5f, 0f), new Vector3(1.6f, 0.02f, 1.6f), new Vector3(0f, 0f, 12f), modelo, CapaEmisiva);
+                    CrearPieza(t, PrimitiveType.Cylinder, new Vector3(0f, 1.2f, 0f), new Vector3(1.3f, 0.02f, 1.3f), new Vector3(0f, 0f, -10f), modelo, CapaEmisiva);
+                    CrearPieza(t, PrimitiveType.Cube, new Vector3(-0.9f, 2.3f, -0.1f), new Vector3(0.5f, 0.06f, 0.35f), new Vector3(0f, 0f, 20f), modelo, CapaPrimaria);
+                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0.9f, 2.3f, -0.1f), new Vector3(0.5f, 0.06f, 0.35f), new Vector3(0f, 0f, -20f), modelo, CapaPrimaria);
+                    CrearPieza(t, PrimitiveType.Cube, new Vector3(0f, 2.38f, 0.26f), new Vector3(0.36f, 0.06f, 0.05f), Vector3.zero, modelo, CapaEmisiva);
                     break;
                 default:
                     // Melena de llamas y grietas de magma.
@@ -166,8 +180,47 @@ namespace VoidformBioForge
                     break;
             }
 
+            if (elemento == TipoElemento.Metal)
+            {
+                // El linaje Metal levita a pocos centímetros del suelo mediante su campo magnético.
+                contenedor.AddComponent<LevitacionMagnetica>();
+            }
+
             modelo.AplicarPaleta(primario, secundario);
             return modelo;
+        }
+    }
+
+    /// <summary>
+    /// Levitación magnética: eleva el modelo unos centímetros y lo hace oscilar con suavidad.
+    /// Lo usan los guardianes de Metal y las torres de las Agujas de Aleación.
+    /// </summary>
+    public class LevitacionMagnetica : MonoBehaviour
+    {
+        [SerializeField] private float alturaBase = 0.12f;
+        [SerializeField] private float amplitud = 0.04f;
+        [SerializeField] private float frecuencia = 0.8f;
+
+        private Vector3 posicionInicial;
+        private float fase;
+
+        public void Configurar(float altura, float amplitudOscilacion, float frecuenciaOscilacion)
+        {
+            alturaBase = altura;
+            amplitud = amplitudOscilacion;
+            frecuencia = frecuenciaOscilacion;
+        }
+
+        private void Start()
+        {
+            posicionInicial = transform.localPosition;
+            fase = Random.Range(0f, Mathf.PI * 2f);
+        }
+
+        private void Update()
+        {
+            float y = alturaBase + Mathf.Sin(Time.time * frecuencia * Mathf.PI * 2f + fase) * amplitud;
+            transform.localPosition = posicionInicial + new Vector3(0f, y, 0f);
         }
     }
 }

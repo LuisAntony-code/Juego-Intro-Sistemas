@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace VoidformBioForge
 {
@@ -188,7 +190,7 @@ namespace VoidformBioForge
                 float distancia = Vector3.Distance(transform.position, enemigoActual.transform.position);
                 if (objetivo == ObjetivoBot.CazarEnemigos || objetivo == ObjetivoBot.DefenderFuente || distancia < 16f || esGuardian)
                 {
-                    if (esGuardian) return enemigoActual.transform.position;
+                    if (esGuardian) return DestinoGuardianPorRol(distancia);
                     // Un humano mantiene distancia media (ritmo de arena shooter: no se lanza a quemarropa).
                     Vector3 alejamiento = (transform.position - enemigoActual.transform.position);
                     alejamiento.y = 0f;
@@ -219,6 +221,44 @@ namespace VoidformBioForge
 
             if (enemigoActual != null) return enemigoActual.transform.position;
             return puntoFuente;
+        }
+
+        /// <summary>
+        /// Coordinación por roles entre guardianes (Historia: 3 o 5 contra 4; o 2 contra 4):
+        /// • Vanguardia: entra al cuerpo a cuerpo abriéndose hacia un flanco para no taponar a sus aliados.
+        /// • Control: se queda entre el enemigo y la fuente, a media distancia (aprox. el radio de sus habilidades).
+        /// • Artillería: mantiene la distancia larga y se desplaza en arco para buscar ángulo.
+        /// </summary>
+        private Vector3 DestinoGuardianPorRol(float distancia)
+        {
+            Vector3 enemigo = enemigoActual.transform.position;
+            Vector3 desdeEnemigo = transform.position - enemigo;
+            desdeEnemigo.y = 0f;
+            if (desdeEnemigo.sqrMagnitude < 0.01f) desdeEnemigo = -transform.forward;
+            desdeEnemigo.Normalize();
+            Vector3 lateral = Vector3.Cross(Vector3.up, desdeEnemigo) * (Mathf.Sin(faseEsquiva) >= 0f ? 1f : -1f);
+
+            switch (guardian.Rol)
+            {
+                case RolGuardian.Vanguardia:
+                    return enemigo + lateral * 1.5f;
+
+                case RolGuardian.Control:
+                {
+                    float ideal = Mathf.Max(guardian.AlcanceAtaqueBasico, guardian.RadioEfecto * 0.7f);
+                    Vector3 haciaFuente = puntoFuente - enemigo;
+                    haciaFuente.y = 0f;
+                    Vector3 direccion = haciaFuente.sqrMagnitude > 1f ? haciaFuente.normalized : desdeEnemigo;
+                    return enemigo + direccion * ideal;
+                }
+
+                default:
+                {
+                    float ideal = guardian.RadioEfecto * 0.85f;
+                    Vector3 arco = Quaternion.Euler(0f, Mathf.Sin(Time.time * 0.3f + faseEsquiva) * 40f, 0f) * desdeEnemigo;
+                    return enemigo + arco * ideal;
+                }
+            }
         }
 
         private ZonaCapturaBase ElegirBaseObjetivo()
@@ -479,24 +519,26 @@ namespace VoidformBioForge
         /// <summary>Elige el elemento que más daño hace a los trajes enemigos presentes.</summary>
         private TipoElemento ElementoMasEficaz()
         {
-            float[] puntuacion = new float[4];
+            TipoElemento[] opciones = UtilidadesTipos.ElementosPrimarios;
+            float[] puntuacion = new float[opciones.Length];
             foreach (SistemaSaludYTraje e in SistemaSaludYTraje.Entidades)
             {
                 if (e == null || e.EstaMuerto || e.Bando == salud.Bando || e.Traje == null) continue;
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < opciones.Length; i++)
                 {
-                    puntuacion[i] += e.Traje.ObtenerMultiplicador(UtilidadesTipos.ElementoATipoDano((TipoElemento)i));
+                    puntuacion[i] += e.Traje.ObtenerMultiplicador(UtilidadesTipos.ElementoATipoDano(opciones[i]));
                 }
             }
 
-            int mejor = (int)guardian.ElementoActual;
-            for (int i = 0; i < 4; i++)
+            int actual = Array.IndexOf(opciones, guardian.ElementoActual);
+            int mejor = actual < 0 ? 0 : actual;
+            for (int i = 0; i < opciones.Length; i++)
             {
                 if (puntuacion[i] > puntuacion[mejor] + 0.01f) mejor = i;
             }
             // La rotación avanza de uno en uno: si el ideal no es el siguiente, se pulsa igual y se
             // acerca en la próxima evaluación (el ciclo completo siempre llega al ideal).
-            return (TipoElemento)mejor;
+            return opciones[mejor];
         }
 
         private void OnDrawGizmosSelected()

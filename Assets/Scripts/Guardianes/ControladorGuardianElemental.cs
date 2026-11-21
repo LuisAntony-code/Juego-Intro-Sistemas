@@ -58,6 +58,7 @@ namespace VoidformBioForge
         private bool esJefeHistoria;
         private float multiplicadorVidaJefe = 1f;
         private float multiplicadorDanoJefe = 1f;
+        private RolGuardian rolActual = RolGuardian.Vanguardia;
         private GameObject auraActual;
 
         private EntradaPersonaje entrada;
@@ -65,6 +66,7 @@ namespace VoidformBioForge
         private ControladorMovimientoAssaultCube movimiento;
 
         public TipoElemento ElementoActual => elementoActual;
+        public RolGuardian Rol => rolActual;
         public float ManaActual => manaActual;
         public float ManaMaximo => manaMaximo;
         public bool UsaMana => usarManaEnModoVersus;
@@ -148,13 +150,20 @@ namespace VoidformBioForge
             AplicarElemento(nuevoElemento, true, false);
         }
 
+        /// <summary>Configura elemento y variante del linaje (Vanguardia, Control o Artillería).</summary>
+        public void ConfigurarGuardian(TipoElemento nuevoElemento, RolGuardian rol)
+        {
+            rolActual = rol;
+            AplicarElemento(nuevoElemento, true, false);
+        }
+
         private void AplicarElemento(TipoElemento nuevoElemento, bool reiniciarMana, bool conservarPorcentajeVida)
         {
             float porcentajeVidaPrevio = salud != null ? salud.PorcentajeVida : 1f;
             elementoActual = nuevoElemento;
             datosActuales = puedeRotarElementos
-                ? DatosGuardianElemental.CrearAethernum(nuevoElemento)
-                : DatosGuardianElemental.CrearPorDefecto(nuevoElemento);
+                ? DatosGuardianElemental.CrearNexus(nuevoElemento, rolActual)
+                : DatosGuardianElemental.CrearVariante(nuevoElemento, rolActual);
 
             danoBaseHabilidad = datosActuales.danoBaseHabilidad;
             radioEfecto = datosActuales.radioEfecto;
@@ -344,6 +353,17 @@ namespace VoidformBioForge
                         AplicarQuemadura(o, 8f, 3f, datosActuales.nombreHabilidad1);
                     }
                     break;
+
+                case TipoElemento.Metal:
+                    // Pulso Magnético: atrae hacia el guardián (empuje negativo), daña y ralentiza.
+                    foreach (SistemaSaludYTraje o in ObtenerEnemigosEnRadio(radioEfecto))
+                    {
+                        AplicarDanoElemental(o, DanoEfectivo(danoBaseHabilidad), datosActuales.nombreHabilidad1);
+                        SistemaEstadosAlterados est = o.GetComponent<SistemaEstadosAlterados>();
+                        est?.AplicarEmpuje(-DireccionHacia(o) * 9f + Vector3.up * 1.5f);
+                        est?.AplicarRalentizacion(0.75f, 1.5f);
+                    }
+                    break;
             }
 
             FabricaEfectosVisuales.CrearEfectoElemental(elementoActual, transform.position, radioEfecto);
@@ -389,6 +409,15 @@ namespace VoidformBioForge
                         AplicarQuemadura(o, 10f, 3f, datosActuales.nombreHabilidad2);
                     }
                     break;
+
+                case TipoElemento.Metal:
+                    // Égida de Aleación: placas flotantes (+35 de blindaje) y descarga eléctrica corta.
+                    salud?.AnadirBlindajeTemporal(35f);
+                    foreach (SistemaSaludYTraje o in ObtenerEnemigosEnRadio(radioEfecto * 0.6f))
+                    {
+                        AplicarDanoElemental(o, DanoEfectivo(danoBaseHabilidad * 0.7f), datosActuales.nombreHabilidad2);
+                    }
+                    break;
             }
 
             FabricaEfectosVisuales.CrearEfectoElemental(elementoActual, transform.position, radioEfecto * 1.1f);
@@ -423,6 +452,10 @@ namespace VoidformBioForge
                         AplicarQuemadura(o, 12f, 4f, datosActuales.nombreDefinitiva);
                         est?.AplicarEmpuje(DireccionHacia(o) * 8f + Vector3.up * 3f);
                         break;
+                    case TipoElemento.Metal:
+                        est?.AplicarEnraizado(1.2f);
+                        est?.AplicarRalentizacion(0.6f, 2.5f);
+                        break;
                 }
             }
 
@@ -437,15 +470,17 @@ namespace VoidformBioForge
             AlLanzarHabilidadElemental?.Invoke($"Definitiva — {datosActuales.nombreDefinitiva} ({UtilidadesTipos.NombreElemento(elementoActual)})");
         }
 
-        /// <summary>Nivel 5: Aethernum cambia al siguiente elemento conservando su porcentaje de vida.</summary>
+        /// <summary>Nexus (niveles 5 y 6): el guardián cambia al siguiente elemento conservando su porcentaje de vida.</summary>
         public void IntentarRotarElemento()
         {
             if (!puedeRotarElementos || enfriamientoRotacionRestante > 0f) return;
             enfriamientoRotacionRestante = enfriamientoRotacionElemento;
-            TipoElemento siguiente = (TipoElemento)(((int)elementoActual + 1) % 4);
+            // El Nexus rota entre los cuatro elementos primarios: Madera → Agua → Fuego → Metal → Madera.
+            int indice = Array.IndexOf(UtilidadesTipos.ElementosPrimarios, elementoActual);
+            TipoElemento siguiente = UtilidadesTipos.ElementosPrimarios[(indice + 1) % UtilidadesTipos.ElementosPrimarios.Length];
             AplicarElemento(siguiente, false, true);
             FabricaEfectosVisuales.CrearAnilloOnda(transform.position + Vector3.up * 0.2f, 4f, PaletaVoidform.ColorElemento(siguiente));
-            AlLanzarHabilidadElemental?.Invoke($"Aethernum adopta la forma de {UtilidadesTipos.NombreElemento(siguiente)}");
+            AlLanzarHabilidadElemental?.Invoke($"{datosActuales.nombreGuardian} adopta la forma de {UtilidadesTipos.NombreElemento(siguiente)}");
         }
 
         // ================== Utilidades de área ==================

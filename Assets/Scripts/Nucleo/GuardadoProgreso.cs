@@ -13,11 +13,14 @@ namespace VoidformBioForge
     {
         private const string Prefijo = "VBF_";
 
+        /// <summary>Número de niveles del Modo Historia (6: cinco escenarios y la Convergencia Total).</summary>
+        public const int NivelesTotales = 6;
+
         // ---------------- Nivel 1: progreso de historia ----------------
 
         public static int ObtenerNivelDesbloqueado(BandoJuego bando)
         {
-            return Mathf.Clamp(PlayerPrefs.GetInt($"{Prefijo}NivelDesbloqueado_{bando}", 1), 1, 5);
+            return Mathf.Clamp(PlayerPrefs.GetInt($"{Prefijo}NivelDesbloqueado_{bando}", 1), 1, NivelesTotales);
         }
 
         public static void DesbloquearNivel(BandoJuego bando, int nivel)
@@ -25,7 +28,7 @@ namespace VoidformBioForge
             int actual = ObtenerNivelDesbloqueado(bando);
             if (nivel > actual)
             {
-                PlayerPrefs.SetInt($"{Prefijo}NivelDesbloqueado_{bando}", Mathf.Clamp(nivel, 1, 5));
+                PlayerPrefs.SetInt($"{Prefijo}NivelDesbloqueado_{bando}", Mathf.Clamp(nivel, 1, NivelesTotales));
                 PlayerPrefs.Save();
             }
         }
@@ -87,7 +90,7 @@ namespace VoidformBioForge
         {
             float suma = 0f;
             int jugados = 0;
-            for (int nivel = 1; nivel <= 5; nivel++)
+            for (int nivel = 1; nivel <= NivelesTotales; nivel++)
             {
                 float valor = ObtenerIntegridadNivel(bando, nivel);
                 if (valor >= 0f)
@@ -106,7 +109,7 @@ namespace VoidformBioForge
             {
                 PlayerPrefs.DeleteKey($"{Prefijo}NivelDesbloqueado_{bando}");
                 PlayerPrefs.DeleteKey($"{Prefijo}HistoriaCompletada_{bando}");
-                for (int nivel = 1; nivel <= 5; nivel++)
+                for (int nivel = 1; nivel <= NivelesTotales; nivel++)
                 {
                     PlayerPrefs.DeleteKey($"{Prefijo}Integridad_{bando}_{nivel}");
                 }
