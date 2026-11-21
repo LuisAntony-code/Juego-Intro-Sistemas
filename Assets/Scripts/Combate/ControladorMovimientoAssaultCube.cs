@@ -69,6 +69,8 @@ namespace VoidformBioForge
         private float multiplicadorTraje = 1f;
         private bool enraizado;
         private bool movimientoHabilitado = true;
+        private float bonificacionVelocidad = 1f;
+        private float bonificacionHasta = -1f;
 
         public event Action AlSaltar;
         public event Action<float> AlAterrizar;
@@ -77,7 +79,8 @@ namespace VoidformBioForge
         public bool EnSuelo => controladorPersonaje != null && controladorPersonaje.isGrounded;
         public bool EstaEnraizado => enraizado;
         public float VelocidadBase => velocidadBase;
-        public float MultiplicadorTotal => multiplicadorHabilidad * multiplicadorEstados * multiplicadorTraje;
+        public float MultiplicadorTotal => multiplicadorHabilidad * multiplicadorEstados * multiplicadorTraje
+                                           * (Time.time < bonificacionHasta ? bonificacionVelocidad : 1f);
         public float RotacionVertical => rotacionVerticalCamara;
 
         public float VelocidadActual
@@ -265,6 +268,13 @@ namespace VoidformBioForge
         public void EstablecerMultiplicadorTraje(float multiplicador)
         {
             multiplicadorTraje = Mathf.Clamp(multiplicador, 0.3f, 2f);
+        }
+
+        /// <summary>Bonificación temporal de velocidad (Faro de vanguardia).</summary>
+        public void AplicarBonificacionVelocidad(float multiplicador, float duracion)
+        {
+            bonificacionVelocidad = Mathf.Clamp(multiplicador, 1f, 1.5f);
+            bonificacionHasta = Mathf.Max(bonificacionHasta, Time.time + duracion);
         }
 
         public void EstablecerEnraizado(bool valor)

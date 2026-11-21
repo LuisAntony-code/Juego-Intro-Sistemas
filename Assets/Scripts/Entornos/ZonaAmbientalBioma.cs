@@ -51,7 +51,7 @@ namespace VoidformBioForge
 
                     if (factorVelocidadDestructores < 0.99f)
                     {
-                        bool inmuneAlAgua = tipoDano == TipoDano.Agua && entidad.Traje != null && entidad.Traje.tipo == TipoTraje.HidrostaticoAnclado;
+                        bool inmuneAlAgua = tipoDano == TipoDano.Agua && entidad.Arquetipo != null && entidad.Arquetipo.inmuneRalentizacionAgua;
                         if (!inmuneAlAgua)
                         {
                             entidad.GetComponent<SistemaEstadosAlterados>()?.AplicarRalentizacion(factorVelocidadDestructores, intervaloPulso + 0.15f);

@@ -64,8 +64,10 @@ namespace VoidformBioForge
                 {
                     InformacionDano tick = quemadura.Fuente;
                     tick.Cantidad = quemadura.Intensidad * acumuladorQuemadura;
-                    tick.Tipo = TipoDano.Fuego;
-                    tick.Origen = "Quemadura";
+                    // El tipo de daño lo define la fuente: Fuego en las quemaduras de los guardianes,
+                    // Cinético en el sangrado de las cuchillas biomecánicas.
+                    if (!quemadura.Fuente.TieneAtacante && quemadura.Fuente.Tipo == TipoDano.Cinetico) tick.Tipo = TipoDano.Fuego;
+                    tick.Origen = string.IsNullOrEmpty(quemadura.Fuente.Origen) ? "Quemadura" : quemadura.Fuente.Origen;
                     acumuladorQuemadura = 0f;
                     salud?.RecibirDano(tick);
                 }
@@ -114,7 +116,7 @@ namespace VoidformBioForge
         public void AplicarEmpuje(Vector3 impulso)
         {
             if (EstaInmune(TipoEstadoAlterado.Empujado)) return;
-            if (salud != null && salud.Traje != null && salud.Traje.inmuneEmpuje) return;
+            if (salud != null && salud.Arquetipo != null && salud.Arquetipo.inmuneEmpuje) return;
             if (salud != null && salud.EsInvulnerable) return;
             movimiento?.AplicarImpulso(impulso);
         }
@@ -150,7 +152,7 @@ namespace VoidformBioForge
             if (EstaInmune(tipo)) return false;
             if (salud != null && (salud.EstaMuerto || salud.EsInvulnerable)) return false;
 
-            float reduccion = salud != null && salud.Traje != null ? salud.Traje.reduccionDuracionEstados : 0f;
+            float reduccion = salud != null && salud.Arquetipo != null ? salud.Arquetipo.reduccionDuracionEstados : 0f;
             float duracionFinal = duracion * (1f - reduccion);
             float fin = Time.time + duracionFinal;
 

@@ -45,7 +45,8 @@ namespace VoidformBioForge
         private EntradaPersonaje entrada;
         private ControladorMovimientoAssaultCube movimiento;
         private SistemaSaludYTraje salud;
-        private SistemaArmasYTrajeDestructor armas;
+        private SistemaCombateArquetipo armas;
+        private bool soltandoFlecha;
         private ControladorGuardianElemental guardian;
         private SistemaEstadosAlterados estados;
 
@@ -76,7 +77,7 @@ namespace VoidformBioForge
             entrada = GetComponent<EntradaPersonaje>();
             movimiento = GetComponent<ControladorMovimientoAssaultCube>();
             salud = GetComponent<SistemaSaludYTraje>();
-            armas = GetComponent<SistemaArmasYTrajeDestructor>();
+            armas = GetComponent<SistemaCombateArquetipo>();
             guardian = GetComponent<ControladorGuardianElemental>();
             estados = GetComponent<SistemaEstadosAlterados>();
             faseEsquiva = Random.Range(0f, 10f);
@@ -91,14 +92,14 @@ namespace VoidformBioForge
 
         private void Update()
         {
-            if (salud.EstaMuerto || !entrada.EntradaHabilitada)
+            if (salud.EstaMuerto || !entrada.EntradaHabilitada || entrada.BloqueadaPorTambaleo)
             {
                 entrada.LimpiarTodo();
                 enemigoActual = null;
                 return;
             }
 
-            if (armas == null) armas = GetComponent<SistemaArmasYTrajeDestructor>();
+            if (armas == null) armas = GetComponent<SistemaCombateArquetipo>();
             if (guardian == null) guardian = GetComponent<ControladorGuardianElemental>();
 
             if (Time.time >= proximaReevaluacion)
@@ -129,7 +130,9 @@ namespace VoidformBioForge
                 float distancia = Vector3.Distance(transform.position, entidad.transform.position);
                 if (distancia > radioDeteccion * 1.5f) continue;
 
-                bool visible = distancia <= radioDeteccion && TieneLineaDeVision(entidad);
+                // Camuflaje de fibras: a más de 12 m no se le percibe. Las marcas (faro, visor, enlace) lo delatan siempre.
+                if (!entidad.EstaRevelado && SistemaCombateArquetipo.EstaOcultoPara(entidad, distancia)) continue;
+                bool visible = entidad.EstaRevelado || (distancia <= radioDeteccion && TieneLineaDeVision(entidad));
                 // Se prefiere a los visibles; entre ellos, al más cercano. Los guardianes que defienden
                 // la fuente priorizan a quien está extrayendo.
                 float puntuacion = distancia + (visible ? 0f : 40f);
@@ -194,7 +197,8 @@ namespace VoidformBioForge
                     // Un humano mantiene distancia media (ritmo de arena shooter: no se lanza a quemarropa).
                     Vector3 alejamiento = (transform.position - enemigoActual.transform.position);
                     alejamiento.y = 0f;
-                    float distanciaIdeal = armas != null && armas.ArmaActiva != null && armas.ArmaActiva.tipo == TipoArma.EscopetaDispersora ? 6f : 14f;
+                    // Distancia ideal según el arma: cuerpo a cuerpo se pega; arco y rifle mantienen la distancia.
+                    float distanciaIdeal = armas != null && armas.Arma != null ? armas.Arma.DistanciaIdealIA : 14f;
                     return enemigoActual.transform.position + alejamiento.normalized * distanciaIdeal;
                 }
             }
@@ -390,6 +394,7 @@ namespace VoidformBioForge
         private void ProcesarCombate()
         {
             entrada.AtaquePrincipalMantenido = false;
+            entrada.AtaqueSecundarioMantenido = false;
 
             bool puedeReaccionar = enemigoActual != null && enemigoVisible && Time.time - momentoAdquisicion >= TiempoReaccion;
             if (!puedeReaccionar)
@@ -404,13 +409,7 @@ namespace VoidformBioForge
 
             if (armas != null)
             {
-                DatosArma arma = armas.ArmaActiva;
-                bool enAlcance = arma == null || distancia <= arma.alcanceMaximo * 0.9f;
-                if (enAlcance && angulo < 6f + ErrorPunteriaGrados)
-                {
-                    entrada.AtaquePrincipalMantenido = true;
-                    entrada.AtaquePrincipalPresionado = true;
-                }
+                ProcesarAtaqueHumano(distancia, angulo);
                 UsarHabilidadesDestructor(distancia);
             }
             else if (guardian != null)
@@ -426,7 +425,7 @@ namespace VoidformBioForge
         private void UsarHabilidadesDefensivas()
         {
             if (Time.time < proximaHabilidad) return;
-            if (armas != null) UsarHabilidadesDestructor(999f);
+            if (armas != null) UsarHabilidadesDestructor(enemigoActual != null ? Vector3.Distance(transform.position, enemigoActual.transform.position) : 999f);
             else if (guardian != null && salud.PorcentajeVida < 0.5f && guardian.PuedeLanzar(ControladorGuardianElemental.SlotHabilidad2)
                      && (guardian.ElementoActual == TipoElemento.Arbol || guardian.ElementoActual == TipoElemento.Tierra))
             {
@@ -435,40 +434,141 @@ namespace VoidformBioForge
             }
         }
 
+        /// <summary>Ataque básico según el arma: combos a corta distancia, arco con carga y rifle con mira.</summary>
+        private void ProcesarAtaqueHumano(float distancia, float angulo)
+        {
+            DatosArmaModular arma = armas.Arma;
+            if (arma == null) return;
+            bool alineado = angulo < 6f + ErrorPunteriaGrados;
+            switch (arma.tipo)
+            {
+                case TipoArmaModular.ArcoCompuesto:
+                    // Mantiene el clic para tensar y lo suelta (un fotograma) al llegar a la carga completa.
+                    if (soltandoFlecha)
+                    {
+                        soltandoFlecha = false;
+                        break;
+                    }
+                    if (armas.CargandoArco && armas.CargaArco >= Mathf.Lerp(0.6f, 1f, dificultad) && alineado)
+                    {
+                        soltandoFlecha = true;
+                        break;
+                    }
+                    entrada.AtaquePrincipalMantenido = distancia <= arma.alcance;
+                    entrada.AtaqueSecundarioMantenido = distancia > 15f;
+                    break;
+                case TipoArmaModular.RifleLargo:
+                    entrada.AtaqueSecundarioMantenido = distancia > 18f;
+                    if (alineado && distancia <= arma.alcance)
+                    {
+                        entrada.AtaquePrincipalMantenido = true;
+                        entrada.AtaquePrincipalPresionado = true;
+                    }
+                    break;
+                default:
+                    if (distancia <= arma.alcance + 1.2f && angulo < 45f)
+                    {
+                        entrada.AtaquePrincipalMantenido = true;
+                        entrada.AtaquePrincipalPresionado = true;
+                    }
+                    else if (arma.tipo == TipoArmaModular.ArsenalBiomecanico && distancia < 25f && alineado)
+                    {
+                        entrada.AtaqueSecundarioMantenido = true; // Cañón de pulso a media distancia.
+                    }
+                    else if (arma.bloqueoFrontal > 0f && distancia < 9f && enemigoActual != null)
+                    {
+                        // Si el guardián está cargando algo cerca, se cubre.
+                        ControladorGuardianElemental g = enemigoActual.GetComponent<ControladorGuardianElemental>();
+                        entrada.AtaqueSecundarioMantenido = g != null && g.EstaAnticipando;
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>Uso táctico de las 6 habilidades humanas (3 de armadura y 3 de arma).</summary>
         private void UsarHabilidadesDestructor(float distanciaEnemigo)
         {
-            if (Time.time < proximaHabilidad) return;
-            DatosTraje traje = salud.Traje;
-            bool usarTraje = false;
+            if (Time.time < proximaHabilidad || armas.Arquetipo == null || armas.Arma == null) return;
+            proximaHabilidad = Time.time + Mathf.Lerp(1.4f, 0.5f, dificultad);
 
-            if (traje != null && armas.EnfriamientoRestanteTraje <= 0f)
+            bool enraizado = estados != null && estados.TieneEstado(TipoEstadoAlterado.Enraizado);
+            bool ralentizado = estados != null && estados.TieneEstado(TipoEstadoAlterado.Ralentizado);
+            ControladorGuardianElemental g = enemigoActual != null ? enemigoActual.GetComponent<ControladorGuardianElemental>() : null;
+            bool guardianCargando = g != null && g.EstaAnticipando && distanciaEnemigo < 14f;
+            bool visible = enemigoActual != null && enemigoVisible;
+
+            // ---- Armadura (Z X C) ----
+            switch (armas.Arquetipo.tipo)
             {
-                switch (traje.tipo)
-                {
-                    case TipoTraje.CineticoAsalto: usarTraje = distanciaEnemigo > 20f && distanciaEnemigo < 200f; break;
-                    case TipoTraje.TermicoIgnifugo: usarTraje = estados != null && estados.TieneEstado(TipoEstadoAlterado.Quemadura); break;
-                    case TipoTraje.HidrostaticoAnclado: usarTraje = estados != null && estados.TieneEstado(TipoEstadoAlterado.Ralentizado) || salud.PorcentajeVida < 0.5f; break;
-                    case TipoTraje.SismicoBlindado: usarTraje = salud.BlindajeActual < salud.BlindajeMaximo * 0.4f; break;
-                    case TipoTraje.PodadorBiotecnico: usarTraje = (estados != null && estados.TieneEstado(TipoEstadoAlterado.Enraizado)) || distanciaEnemigo < 4.5f; break;
-                }
+                case TipoArquetipo.Cazador:
+                    if (Libre(0) && (enraizado || guardianCargando || (distanciaEnemigo < 4f && armas.Arma.DistanciaIdealIA > 5f))) { entrada.HabilidadArmaduraCorta = true; return; }
+                    if (Libre(1) && objetivo == ObjetivoBot.ExtraerFuente && distanciaEnemigo > 15f) { entrada.HabilidadArmaduraMedia = true; return; }
+                    if (Libre(2) && visible && distanciaEnemigo > 22f) { entrada.HabilidadArmaduraLarga = true; return; }
+                    break;
+                case TipoArquetipo.Paladin:
+                    if (Libre(0) && (distanciaEnemigo < 4.5f || enraizado || ralentizado)) { entrada.HabilidadArmaduraCorta = true; return; }
+                    if (Libre(1) && guardianCargando) { entrada.HabilidadArmaduraMedia = true; return; }
+                    if (Libre(2) && visible && distanciaEnemigo < 30f) { entrada.HabilidadArmaduraLarga = true; return; }
+                    break;
+                case TipoArquetipo.Bastion:
+                    if (Libre(0) && (distanciaEnemigo < 4f || guardianCargando)) { entrada.HabilidadArmaduraCorta = true; return; }
+                    if (Libre(1) && visible && distanciaEnemigo < 10f) { entrada.HabilidadArmaduraMedia = true; return; }
+                    if (Libre(2) && AliadoEnApuros()) { entrada.HabilidadArmaduraLarga = true; return; }
+                    break;
+                case TipoArquetipo.Tirador:
+                    if (Libre(0) && distanciaEnemigo < 4f) { entrada.HabilidadArmaduraCorta = true; return; }
+                    if (Libre(1) && visible && distanciaEnemigo < 40f) { entrada.HabilidadArmaduraMedia = true; return; }
+                    if (Libre(2) && visible) { entrada.HabilidadArmaduraLarga = true; return; }
+                    break;
+                default:
+                    if (Libre(0) && distanciaEnemigo < 5f) { entrada.HabilidadArmaduraCorta = true; return; }
+                    if (Libre(1) && (enraizado || ralentizado || guardianCargando)) { entrada.HabilidadArmaduraMedia = true; return; }
+                    if (Libre(2) && visible && distanciaEnemigo < 40f) { entrada.HabilidadArmaduraLarga = true; return; }
+                    break;
             }
 
-            if (usarTraje)
+            // ---- Arma (E Q F) ----
+            if (!visible) return;
+            switch (armas.Arma.tipo)
             {
-                entrada.Habilidad1Presionada = true;
-                proximaHabilidad = Time.time + 0.8f;
-                return;
+                case TipoArmaModular.ArcoCompuesto:
+                    if (Libre(3) && distanciaEnemigo < 3f) entrada.Habilidad1Presionada = true;
+                    else if (Libre(4) && distanciaEnemigo < 20f) entrada.HabilidadEspecialPresionada = true;
+                    else if (Libre(5) && distanciaEnemigo > 15f) entrada.CambiarElementoPresionado = true;
+                    break;
+                case TipoArmaModular.Mandoble:
+                    if (Libre(3) && distanciaEnemigo < 3f) entrada.Habilidad1Presionada = true;
+                    else if (Libre(4) && distanciaEnemigo < 15f) entrada.HabilidadEspecialPresionada = true;
+                    else if (Libre(5) && distanciaEnemigo > 5f && distanciaEnemigo < 12f) entrada.CambiarElementoPresionado = true;
+                    break;
+                case TipoArmaModular.MazaEscudo:
+                    if (Libre(3) && (distanciaEnemigo < 3.5f || guardianCargando)) entrada.Habilidad1Presionada = true;
+                    else if (Libre(4) && distanciaEnemigo > 4f && distanciaEnemigo < 12f) entrada.HabilidadEspecialPresionada = true;
+                    else if (Libre(5) && guardianCargando) entrada.CambiarElementoPresionado = true;
+                    break;
+                case TipoArmaModular.RifleLargo:
+                    if (Libre(3) && distanciaEnemigo < 6f) entrada.Habilidad1Presionada = true;
+                    else if (Libre(4) && guardianCargando) entrada.HabilidadEspecialPresionada = true;
+                    else if (Libre(5) && distanciaEnemigo > 10f) entrada.CambiarElementoPresionado = true;
+                    break;
+                default:
+                    if (Libre(3) && distanciaEnemigo < 2.5f) entrada.Habilidad1Presionada = true;
+                    else if (Libre(4) && distanciaEnemigo > 6f && distanciaEnemigo < 18f) entrada.HabilidadEspecialPresionada = true;
+                    else if (Libre(5) && distanciaEnemigo > 12f) entrada.CambiarElementoPresionado = true;
+                    break;
             }
+        }
 
-            if (armas.EnfriamientoRestanteArma <= 0f && distanciaEnemigo < 60f)
+        private bool Libre(int ranura) => armas.ObtenerEnfriamiento(ranura) <= 0f;
+
+        private bool AliadoEnApuros()
+        {
+            foreach (SistemaSaludYTraje a in SistemaSaludYTraje.Entidades)
             {
-                bool rifleCurativo = armas.ArmaActiva != null && armas.ArmaActiva.tipo == TipoArma.RifleExtractor;
-                if (!rifleCurativo || salud.PorcentajeVida < 0.6f || armas.BalasEnCargador < 5)
-                {
-                    entrada.HabilidadEspecialPresionada = true;
-                    proximaHabilidad = Time.time + 0.8f;
-                }
+                if (a == null || a == salud || a.EstaMuerto || a.Bando != salud.Bando) continue;
+                if (a.PorcentajeVida < 0.4f && Vector3.Distance(a.transform.position, transform.position) < 25f) return true;
             }
+            return false;
         }
 
         private void UsarHabilidadesGuardian()
@@ -523,10 +623,10 @@ namespace VoidformBioForge
             float[] puntuacion = new float[opciones.Length];
             foreach (SistemaSaludYTraje e in SistemaSaludYTraje.Entidades)
             {
-                if (e == null || e.EstaMuerto || e.Bando == salud.Bando || e.Traje == null) continue;
+                if (e == null || e.EstaMuerto || e.Bando == salud.Bando || e.Arquetipo == null) continue;
                 for (int i = 0; i < opciones.Length; i++)
                 {
-                    puntuacion[i] += e.Traje.ObtenerMultiplicador(UtilidadesTipos.ElementoATipoDano(opciones[i]));
+                    puntuacion[i] += e.Arquetipo.ObtenerMultiplicador(UtilidadesTipos.ElementoATipoDano(opciones[i]));
                 }
             }
 

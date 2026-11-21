@@ -18,6 +18,10 @@ namespace VoidformBioForge
         public Vector3 Punto;
         public string Origen;
         public bool EsExplosionDeTraje;
+        /// <summary>Impacto en un punto débil (daño crítico).</summary>
+        public bool EsCritico;
+        /// <summary>Aguante que resta el golpe (0 = se calcula como el 30% del daño).</summary>
+        public float ImpactoAguante;
 
         public static InformacionDano Crear(float cantidad, TipoDano tipo, SistemaSaludYTraje atacante, string origen)
         {

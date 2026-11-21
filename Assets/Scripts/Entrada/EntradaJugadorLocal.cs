@@ -9,10 +9,10 @@ namespace VoidformBioForge
     ///   WASD / flechas ... moverse            Ratón ........ mirar
     ///   Espacio .......... saltar             Clic izq. .... disparar / golpe elemental
     ///   R ................ recargar (Destructor) / habilidad 2 (Guardián)
-    ///   E ................ habilidad del traje (Destructor) / habilidad 1 (Guardián)
-    ///   Q ................ habilidad del arma (Destructor) / definitiva (Guardián)
-    ///   F ................ rotar elemento (solo Guardián del Núcleo, nivel 5)
-    ///   1 / 2 / rueda .... cambiar arma principal / secundaria
+    ///   Clic derecho ..... bloquear / apuntar / cañón de pulso (Destructor)
+    ///   Z / X / C ........ habilidades de armadura corta / media / larga (Destructor)
+    ///   E / Q / F ........ habilidades del arma corta / media / larga (Destructor)
+    ///   E / R / Q ........ habilidades 1 / 2 / definitiva (Guardián) · F rota elemento (Nexus)
     ///   Esc .............. pausa (lo gestiona GestorInterfazJuego)
     /// Usa el "Input Manager" clásico de Unity. Si el proyecto usa el nuevo Input System,
     /// en Project Settings > Player > Active Input Handling seleccione "Both".
@@ -49,7 +49,7 @@ namespace VoidformBioForge
 
         private void Update()
         {
-            if (EntradaBloqueadaPorInterfaz || !entrada.EntradaHabilitada)
+            if (EntradaBloqueadaPorInterfaz || !entrada.EntradaHabilitada || entrada.BloqueadaPorTambaleo)
             {
                 entrada.LimpiarTodo();
                 return;
@@ -67,6 +67,10 @@ namespace VoidformBioForge
             entrada.SaltoPresionado |= Input.GetButtonDown("Jump");
             entrada.AtaquePrincipalMantenido = Input.GetMouseButton(0);
             entrada.AtaquePrincipalPresionado |= Input.GetMouseButtonDown(0);
+            entrada.AtaqueSecundarioMantenido = Input.GetMouseButton(1);
+            entrada.HabilidadArmaduraCorta |= Input.GetKeyDown(KeyCode.Z);
+            entrada.HabilidadArmaduraMedia |= Input.GetKeyDown(KeyCode.X);
+            entrada.HabilidadArmaduraLarga |= Input.GetKeyDown(KeyCode.C);
             entrada.RecargarPresionado |= Input.GetKeyDown(KeyCode.R);
             entrada.Habilidad1Presionada |= Input.GetKeyDown(KeyCode.E);
             entrada.Habilidad2Presionada |= Input.GetKeyDown(KeyCode.R);

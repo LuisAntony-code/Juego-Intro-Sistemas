@@ -65,7 +65,22 @@ namespace VoidformBioForge
         [Tooltip("Porcentaje de vida por debajo del cual se avisa del riesgo de explosión.")]
         [SerializeField] [Range(0.05f, 0.5f)] private float umbralTrajeCritico = 0.25f;
 
-        private DatosTraje trajeAsignado;
+        private DatosArquetipo arquetipoAsignado;
+
+        // ---------- Estabilidad (aguante) ----------
+        private float aguanteMaximo = 60f;
+        private float ultimoImpactoAguante = -10f;
+        private float inmuneTambaleoHasta = -1f;
+
+        // ---------- Modificadores temporales ----------
+        private float multiplicadorTemporalRecibido = 1f;
+        private float multiplicadorTemporalHasta = -1f;
+        private float reduccionElementalTemporal;
+        private float reduccionElementalHasta = -1f;
+        private SistemaSaludYTraje protector;
+        private float porcentajeProtector;
+        private float protectorHasta = -1f;
+        private float reveladoHasta = -1f;
         private float multiplicadorDanoRecibido = 1f;
         private float invulnerableHasta = -1f;
         private bool alertaCriticaActiva;
@@ -82,7 +97,21 @@ namespace VoidformBioForge
         public bool EstaMuerto { get; private set; }
         public BandoJuego Bando => bando;
         public bool EsJugadorLocal { get; set; }
-        public DatosTraje Traje => trajeAsignado;
+        public DatosArquetipo Arquetipo => arquetipoAsignado;
+
+        public float AguanteActual { get; private set; } = 60f;
+        public float AguanteMaximo => aguanteMaximo;
+        public bool EstaTambaleando => Time.time < TambaleoHasta;
+        public float TambaleoHasta { get; private set; } = -1f;
+        public bool EstaRevelado => Time.time < reveladoHasta;
+
+        /// <summary>
+        /// Filtro opcional que ajusta el daño entrante antes de aplicarlo (bloqueo con escudo o espada,
+        /// absorción del Bastión...). Lo registra el sistema de combate del propio personaje.
+        /// </summary>
+        public Func<InformacionDano, InformacionDano> FiltroDanoEntrante { get; set; }
+
+        public event Action<float> AlTambalear;
         public float TiempoUltimaMuerte { get; private set; } = -1f;
         public InformacionDano UltimoDanoRecibido { get; private set; }
         public float PorcentajeVida => vidaMaxima <= 0f ? 0f : VidaActual / vidaMaxima;
@@ -134,13 +163,87 @@ namespace VoidformBioForge
         }
 
         /// <summary>Asigna un traje Destructor: aplica su vida, blindaje y resistencias.</summary>
-        public void AsignarTraje(DatosTraje traje)
+        /// <summary>Asigna el arquetipo humano: vida, blindaje, aguante y resistencias de su armadura.</summary>
+        public void AsignarArquetipo(DatosArquetipo arquetipo)
         {
-            trajeAsignado = traje;
-            if (traje != null)
+            arquetipoAsignado = arquetipo;
+            if (arquetipo != null)
             {
-                ConfigurarBandoYEstadisticas(BandoJuego.Destructor, traje.vidaMaxima, traje.blindajeMaximo);
+                aguanteMaximo = arquetipo.aguanteMaximo;
+                ConfigurarBandoYEstadisticas(BandoJuego.Destructor, arquetipo.vidaMaxima, arquetipo.blindajeMaximo);
             }
+        }
+
+        public void ConfigurarAguante(float maximo)
+        {
+            aguanteMaximo = Mathf.Max(1f, maximo);
+            AguanteActual = aguanteMaximo;
+        }
+
+        // ================== Modificadores temporales (habilidades) ==================
+
+        /// <summary>Multiplica TODO el daño recibido durante un tiempo (marcas, sobrecalentamiento...).</summary>
+        public void AplicarMultiplicadorTemporal(float multiplicador, float duracion)
+        {
+            multiplicadorTemporalRecibido = multiplicador;
+            multiplicadorTemporalHasta = Time.time + duracion;
+        }
+
+        /// <summary>Reduce el daño elemental (Madera, Agua, Tierra, Fuego, Metal) durante un tiempo.</summary>
+        public void AplicarReduccionElemental(float reduccion, float duracion)
+        {
+            reduccionElementalTemporal = Mathf.Clamp01(reduccion);
+            reduccionElementalHasta = Time.time + duracion;
+        }
+
+        /// <summary>Otro personaje recibe un porcentaje del daño de este (Intercepción del Bastión).</summary>
+        public void EstablecerProtector(SistemaSaludYTraje nuevoProtector, float porcentaje, float duracion)
+        {
+            protector = nuevoProtector;
+            porcentajeProtector = Mathf.Clamp01(porcentaje);
+            protectorHasta = Time.time + duracion;
+        }
+
+        /// <summary>Hace visible al personaje para el bando rival durante un tiempo (faro, visor, enlace).</summary>
+        public void Revelar(float duracion)
+        {
+            reveladoHasta = Mathf.Max(reveladoHasta, Time.time + duracion);
+        }
+
+        // ================== Estabilidad: aguante y tambaleo ==================
+
+        private void Update()
+        {
+            if (EstaMuerto) return;
+            if (Time.time - ultimoImpactoAguante > 1f && AguanteActual < aguanteMaximo)
+            {
+                AguanteActual = Mathf.Min(aguanteMaximo, AguanteActual + 25f * Time.deltaTime);
+            }
+        }
+
+        /// <summary>Resta aguante. Si llega a 0, el personaje se tambalea 0,8 s y cancela lo que estaba cargando.</summary>
+        public void DanarAguante(float cantidad)
+        {
+            if (EstaMuerto || cantidad <= 0f || Time.time < inmuneTambaleoHasta || EsInvulnerable) return;
+            ultimoImpactoAguante = Time.time;
+            AguanteActual -= cantidad;
+            if (AguanteActual <= 0f)
+            {
+                AguanteActual = aguanteMaximo;
+                Tambalear(0.8f);
+            }
+        }
+
+        public void Tambalear(float duracion)
+        {
+            if (EstaMuerto) return;
+            TambaleoHasta = Time.time + duracion;
+            inmuneTambaleoHasta = Time.time + duracion + 2f;
+            EntradaPersonaje entrada = GetComponent<EntradaPersonaje>();
+            if (entrada != null) entrada.BloquearDurante(duracion);
+            ControladorGuardianElemental guardian = GetComponent<ControladorGuardianElemental>();
+            if (guardian != null) guardian.CancelarAnticipacion("tambaleo");
+            AlTambalear?.Invoke(duracion);
         }
 
         /// <summary>Escala el daño recibido (por ejemplo, para jefes del Modo Historia).</summary>
@@ -167,6 +270,11 @@ namespace VoidformBioForge
             EstaMuerto = false;
             VidaActual = vidaMaxima;
             BlindajeActual = blindajeMaximo;
+            AguanteActual = aguanteMaximo;
+            TambaleoHasta = -1f;
+            multiplicadorTemporalHasta = -1f;
+            reduccionElementalHasta = -1f;
+            protectorHasta = -1f;
             EstablecerCuerpoVisible(true);
             ActualizarAlertaCritica();
             NotificarCambioSalud();
@@ -186,8 +294,39 @@ namespace VoidformBioForge
             if (EsInvulnerable) return;
             if (EsDanoAliadoBloqueado(informacion)) return;
 
-            float multiplicadorTraje = trajeAsignado != null ? trajeAsignado.ObtenerMultiplicador(informacion.Tipo) : 1f;
-            float danoRestante = informacion.Cantidad * multiplicadorTraje * multiplicadorDanoRecibido;
+            // Barreras de energía (Égida refractaria, Postura de bastión) entre el atacante y este personaje.
+            if (informacion.TieneAtacante && informacion.Atacante != gameObject
+                && BarreraEnergia.Intercepta(informacion.Atacante != null ? informacion.Atacante.transform.position + Vector3.up * 1.2f : informacion.Punto,
+                    transform.position + Vector3.up, bando, informacion))
+            {
+                return;
+            }
+
+            // Filtro propio (bloqueo con arma o escudo, absorción...).
+            if (FiltroDanoEntrante != null)
+            {
+                informacion = FiltroDanoEntrante(informacion);
+                if (informacion.Cantidad <= 0f) return;
+            }
+
+            // Intercepción: un protector recibe parte del daño.
+            if (protector != null && Time.time < protectorHasta && !protector.EstaMuerto && protector != this)
+            {
+                InformacionDano parte = informacion;
+                parte.Cantidad = informacion.Cantidad * porcentajeProtector;
+                informacion.Cantidad -= parte.Cantidad;
+                protector.RecibirDano(parte);
+            }
+
+            float multiplicadorArmadura = arquetipoAsignado != null ? arquetipoAsignado.ObtenerMultiplicador(informacion.Tipo) : 1f;
+            float multiplicadorTemporal = Time.time < multiplicadorTemporalHasta ? multiplicadorTemporalRecibido : 1f;
+            bool esElemental = informacion.Tipo != TipoDano.Cinetico && informacion.Tipo != TipoDano.Explosivo;
+            float reduccion = esElemental && Time.time < reduccionElementalHasta ? reduccionElementalTemporal : 0f;
+            float danoRestante = informacion.Cantidad * multiplicadorArmadura * multiplicadorDanoRecibido * multiplicadorTemporal * (1f - reduccion);
+
+            // Estabilidad: los golpes restan aguante (las explosiones, el triple).
+            float aguante = informacion.ImpactoAguante > 0f ? informacion.ImpactoAguante : informacion.Cantidad * 0.3f;
+            if (informacion.Tipo == TipoDano.Explosivo) aguante *= 3f;
 
             if (BlindajeActual > 0f)
             {
@@ -207,6 +346,10 @@ namespace VoidformBioForge
             if (VidaActual <= 0f)
             {
                 EjecutarMuerte(informacion);
+            }
+            else
+            {
+                DanarAguante(aguante);
             }
         }
 

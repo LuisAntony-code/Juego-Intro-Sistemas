@@ -275,8 +275,8 @@ namespace VoidformBioForge
 
             CrearTarjeta(fila, "DESTRUCTORES · Expedición humana",
                 "Operativos de la nave-arca Bio-Forge con exotrajes y armas extractoras. Ritmo ágil de arena shooter en PRIMERA PERSONA.\n\n" +
-                "• 5 trajes con habilidad propia (tecla E) y resistencias elementales.\n" +
-                "• 5 armas con cargador, recarga, retroceso y habilidad (tecla Q).\n" +
+                "• 5 arquetipos (Cazador, Paladín, Vanguardia, Tirador, Operario) con 3 habilidades de armadura (Z · X · C) y resistencias elementales.\n" +
+                "• 5 armas modulares combinables (arco, mandoble, maza y escudo, rifle largo, arsenal biomecánico) con 3 habilidades (E · Q · F).\n" +
                 "• REGLA: si la vida del traje llega a 0, el traje EXPLOTA y el humano muere (daña a los guardianes cercanos).\n\n" +
                 "Su dilema: la Tierra se apaga y esta energía podría salvarla... ¿a cualquier precio?",
                 PaletaVoidform.Destructor, () => flujo.ElegirBando(BandoJuego.Destructor));
@@ -383,7 +383,7 @@ namespace VoidformBioForge
                 ? "<b>Perspectiva Destructor:</b> escuadrón de 4 humanos (los huecos se rellenan con bots/mods) contra 3 guardianes del escenario " +
                   "(vanguardia, control y artillería) y contra 5 —uno de cada escenario— en el nivel 6. Ganas derrotándolos o extrayendo el 100% de la " +
                   "fuente, pero cada punto extraído daña el ecosistema y cambia el final."
-                : "<b>Perspectiva Guardián:</b> tú y un guardián aliado (IA) contra 4 humanos bot que aprenden: desde el nivel 2 llevan el traje que " +
+                : "<b>Perspectiva Guardián:</b> tú y un guardián aliado (IA) contra 4 humanos bot que aprenden: desde el nivel 2 llevan el arquetipo que " +
                   "resiste tu elemento. Los guardianes tienen más vida pero algo menos de velocidad. Para pasar al siguiente nivel DEBES ganarles.";
         }
 
@@ -400,34 +400,37 @@ namespace VoidformBioForge
             grupoTrajesArmas = FabricaInterfaz.CrearRect(c, "Trajes y armas");
             FabricaInterfaz.Anclar(grupoTrajesArmas, 0f, 0f, 1f, 1f);
 
-            Text rotuloTraje = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Rótulo traje", "TRAJE (habilidad: tecla E)", 24, PaletaVoidform.Destructor, TextAnchor.MiddleLeft, FontStyle.Bold);
-            FabricaInterfaz.Anclar((RectTransform)rotuloTraje.transform, 0f, 0.92f, 1f, 1f);
-            RectTransform filaTrajes = FabricaInterfaz.CrearFila(grupoTrajesArmas, "Fila trajes", 12f, 0);
-            FabricaInterfaz.Anclar(filaTrajes, 0f, 0.8f, 1f, 0.92f);
+            Text rotuloTraje = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Rótulo arquetipo", "ARQUETIPO / ARMADURA (habilidades Z · X · C)", 24, PaletaVoidform.Destructor, TextAnchor.MiddleLeft, FontStyle.Bold);
+            FabricaInterfaz.Anclar((RectTransform)rotuloTraje.transform, 0f, 0.93f, 1f, 1f);
+            RectTransform filaTrajes = FabricaInterfaz.CrearFila(grupoTrajesArmas, "Fila arquetipos", 12f, 0);
+            FabricaInterfaz.Anclar(filaTrajes, 0f, 0.84f, 1f, 0.93f);
             botonesTraje = new Button[5];
             for (int i = 0; i < 5; i++)
             {
-                TipoTraje tipo = (TipoTraje)i;
-                DatosTraje d = DatosTraje.CrearPorDefecto(tipo);
-                botonesTraje[i] = FabricaInterfaz.CrearBoton(filaTrajes, d.nombreTraje, d.nombreTraje, () => { flujo.ElegirTraje(tipo); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 19);
+                TipoArquetipo tipo = (TipoArquetipo)i;
+                DatosArquetipo d = DatosArquetipo.CrearPorDefecto(tipo);
+                string corto = d.nombre.Split('/')[0].Trim();
+                botonesTraje[i] = FabricaInterfaz.CrearBoton(filaTrajes, corto, corto, () => { flujo.ElegirArquetipo(tipo); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 19);
+                UnityEngine.Object.Destroy(d);
             }
-            textoDetalleTraje = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Detalle traje", "", 21, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
-            FabricaInterfaz.Anclar((RectTransform)textoDetalleTraje.transform, 0f, 0.52f, 1f, 0.78f, 4f, 0f, 4f, 0f);
+            textoDetalleTraje = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Detalle arquetipo", "", 17, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
+            FabricaInterfaz.Anclar((RectTransform)textoDetalleTraje.transform, 0f, 0.5f, 1f, 0.83f, 4f, 0f, 4f, 0f);
 
-            Text rotuloArma = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Rótulo arma", "ARMA PRINCIPAL (habilidad: tecla Q · secundaria: Pistola Auxiliar)", 24, PaletaVoidform.Destructor, TextAnchor.MiddleLeft, FontStyle.Bold);
-            FabricaInterfaz.Anclar((RectTransform)rotuloArma.transform, 0f, 0.44f, 1f, 0.52f);
+            Text rotuloArma = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Rótulo arma", "ARMA MODULAR (clic izq. ataque · clic der. bloqueo/apuntar/tensar · habilidades E · Q · F)", 22, PaletaVoidform.Destructor, TextAnchor.MiddleLeft, FontStyle.Bold);
+            FabricaInterfaz.Anclar((RectTransform)rotuloArma.transform, 0f, 0.43f, 1f, 0.5f);
             RectTransform filaArmas = FabricaInterfaz.CrearFila(grupoTrajesArmas, "Fila armas", 12f, 0);
-            FabricaInterfaz.Anclar(filaArmas, 0f, 0.32f, 1f, 0.44f);
-            TipoArma[] armas = { TipoArma.RifleExtractor, TipoArma.SubfusilRafaga, TipoArma.EscopetaDispersora, TipoArma.RiflePrecision, TipoArma.PistolaAuxiliar };
-            botonesArma = new Button[armas.Length];
-            for (int i = 0; i < armas.Length; i++)
+            FabricaInterfaz.Anclar(filaArmas, 0f, 0.34f, 1f, 0.43f);
+            botonesArma = new Button[5];
+            for (int i = 0; i < 5; i++)
             {
-                TipoArma tipo = armas[i];
-                DatosArma d = DatosArma.CrearPorDefecto(tipo);
-                botonesArma[i] = FabricaInterfaz.CrearBoton(filaArmas, d.nombreArma, d.nombreArma, () => { flujo.ElegirArma(tipo); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 19);
+                TipoArmaModular tipo = (TipoArmaModular)i;
+                DatosArmaModular d = DatosArmaModular.CrearPorDefecto(tipo);
+                string corto = d.nombre.Split('/')[0].Trim();
+                botonesArma[i] = FabricaInterfaz.CrearBoton(filaArmas, corto, corto, () => { flujo.ElegirArmaModular(tipo); RefrescarPersonalizacion(); }, PaletaVoidform.PanelProfundo, 19);
+                UnityEngine.Object.Destroy(d);
             }
-            textoDetalleArma = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Detalle arma", "", 21, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
-            FabricaInterfaz.Anclar((RectTransform)textoDetalleArma.transform, 0f, 0.02f, 1f, 0.3f, 4f, 0f, 4f, 0f);
+            textoDetalleArma = FabricaInterfaz.CrearTexto(grupoTrajesArmas, "Detalle arma", "", 17, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
+            FabricaInterfaz.Anclar((RectTransform)textoDetalleArma.transform, 0f, 0.02f, 1f, 0.33f, 4f, 0f, 4f, 0f);
 
             // ---- Cuidador: elementos ----
             grupoElementos = FabricaInterfaz.CrearRect(c, "Elementos");
@@ -463,6 +466,11 @@ namespace VoidformBioForge
             FabricaInterfaz.Colocar((RectTransform)continuar.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-40f, 30f), new Vector2(280f, 62f));
         }
 
+        private static string DescribirFicha(string tecla, FichaHabilidad f)
+        {
+            return $"<color=#FFB37A>[{tecla}] «{f.Nombre}» ({f.Enfriamiento:0} s):</color> {f.Descripcion}\n";
+        }
+
         private void RefrescarPersonalizacion()
         {
             ConfiguracionPartida cfg = flujo.Configuracion;
@@ -474,23 +482,29 @@ namespace VoidformBioForge
             {
                 for (int i = 0; i < botonesTraje.Length; i++)
                 {
-                    FabricaInterfaz.ResaltarBoton(botonesTraje[i], (TipoTraje)i == cfg.trajeDestructor, PaletaVoidform.DestructorOscuro, PaletaVoidform.PanelProfundo);
+                    FabricaInterfaz.ResaltarBoton(botonesTraje[i], (TipoArquetipo)i == cfg.arquetipo, PaletaVoidform.DestructorOscuro, PaletaVoidform.PanelProfundo);
                 }
-                DatosTraje t = DatosTraje.CrearPorDefecto(cfg.trajeDestructor);
-                textoDetalleTraje.text = $"<b>{t.nombreTraje}</b> — Vida {t.vidaMaxima} · Blindaje {t.blindajeMaximo} · Velocidad ×{t.multiplicadorVelocidad:0.00}\n" +
-                                         $"{t.descripcion}\n<color=#FFB37A>Habilidad «{t.nombreHabilidad}» ({t.enfriamientoHabilidad} s):</color> {t.descripcionHabilidad}\n" +
+                DatosArquetipo t = DatosArquetipo.CrearPorDefecto(cfg.arquetipo);
+                textoDetalleTraje.text = $"<b><size=21>{t.nombre}</size></b> — Vida {t.vidaMaxima:0} · Blindaje {t.blindajeMaximo:0} · Velocidad ×{t.multiplicadorVelocidad:0.00} · Aguante {t.aguanteMaximo:0}\n" +
+                                         $"{t.descripcion}\n" +
+                                         DescribirFicha("Z", t.habilidadCorta) + DescribirFicha("X", t.habilidadMedia) + DescribirFicha("C", t.habilidadLarga) +
                                          $"<color=#A9B4C8>{t.DescribirResistencias()}</color>";
+                UnityEngine.Object.Destroy(t);
 
-                TipoArma[] orden = { TipoArma.RifleExtractor, TipoArma.SubfusilRafaga, TipoArma.EscopetaDispersora, TipoArma.RiflePrecision, TipoArma.PistolaAuxiliar };
                 for (int i = 0; i < botonesArma.Length; i++)
                 {
-                    FabricaInterfaz.ResaltarBoton(botonesArma[i], orden[i] == cfg.armaPrincipal, PaletaVoidform.DestructorOscuro, PaletaVoidform.PanelProfundo);
+                    FabricaInterfaz.ResaltarBoton(botonesArma[i], (TipoArmaModular)i == cfg.armaModular, PaletaVoidform.DestructorOscuro, PaletaVoidform.PanelProfundo);
                 }
-                DatosArma a = DatosArma.CrearPorDefecto(cfg.armaPrincipal);
-                string perdigones = a.perdigonesPorDisparo > 1 ? $" ×{a.perdigonesPorDisparo} perdigones" : "";
-                textoDetalleArma.text = $"<b>{a.nombreArma}</b> — Daño {a.danoPorImpacto}{perdigones} · Cadencia {a.cadenciaDisparosPorSegundo}/s · Cargador {a.tamanoCargador} " +
-                                        $"(reserva {a.municionReservaMaxima}) · Recarga {a.tiempoRecarga} s · Alcance {a.alcanceMaximo} m · {(a.esAutomatica ? "Automática" : "Semiautomática")}\n" +
-                                        $"{a.descripcion}\n<color=#FFB37A>Habilidad «{a.nombreHabilidad}» ({a.enfriamientoHabilidad} s):</color> {a.descripcionHabilidad}";
+                DatosArmaModular a = DatosArmaModular.CrearPorDefecto(cfg.armaModular);
+                string modo = a.modo == ModoAtaqueArma.CuerpoACuerpo ? $"Cuerpo a cuerpo · combo de {a.golpesCombo} golpes · alcance {a.alcance:0.0} m"
+                    : a.modo == ModoAtaqueArma.Proyectil ? (a.tiempoCarga > 0f ? $"Proyectil con carga ({a.tiempoCarga:0.0} s) · caída balística" : "Proyectil balístico")
+                    : $"Rayo de precisión · zoom ×{a.zoomMira:0.0}";
+                string municion = a.UsaMunicion ? $" · Cargador {a.cargador} (reserva {a.reservaMaxima}) · Recarga {a.tiempoRecarga:0.0} s" : "";
+                string bloqueo = a.bloqueoFrontal > 0f ? $" · Bloqueo frontal {Mathf.RoundToInt(a.bloqueoFrontal * 100)}%" : "";
+                textoDetalleArma.text = $"<b><size=21>{a.nombre}</size></b> — Daño {a.dano:0} · {modo}{municion}{bloqueo}\n" +
+                                        $"{a.descripcion}\n" +
+                                        DescribirFicha("E", a.habilidadCorta) + DescribirFicha("Q", a.habilidadMedia) + DescribirFicha("F", a.habilidadLarga);
+                UnityEngine.Object.Destroy(a);
             }
             else
             {
@@ -645,6 +659,14 @@ namespace VoidformBioForge
             FabricaInterfaz.Colocar((RectTransform)comenzar.transform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-40f, 30f), new Vector2(320f, 62f));
         }
 
+        private static string NombreArquetipo(TipoArquetipo tipo)
+        {
+            DatosArquetipo d = DatosArquetipo.CrearPorDefecto(tipo);
+            string n = d.nombre;
+            UnityEngine.Object.Destroy(d);
+            return n;
+        }
+
         private void RefrescarBriefing()
         {
             ConfiguracionPartida cfg = flujo.Configuracion;
@@ -657,7 +679,7 @@ namespace VoidformBioForge
                 ? $"PERSPECTIVA DESTRUCTOR · primera persona · escuadrón de 4 = {comp.HumanosReales} humano(s) real(es) + {comp.BotsHumanos} bot(s)/mod(s). " +
                   $"Rivales: {comp.Guardianes.Count} guardianes ({comp.DescribirGuardianes()}), vida ×{comp.MultiplicadorVidaGuardianesIA:0.00} y daño ×{comp.MultiplicadorDanoGuardianesIA:0.00}."
                 : $"PERSPECTIVA GUARDIÁN · tercera persona · 2 guardianes: {comp.DescribirGuardianes()}. Rival: 4 humanos bot (precisión {Mathf.RoundToInt(comp.DificultadBots * 100)}%, " +
-                  $"traje {DatosTraje.CrearPorDefecto(comp.TrajeBotsHumanos).nombreTraje}). Para avanzar DEBES ganarles.";
+                  $"arquetipo {NombreArquetipo(comp.ArquetipoBotsHumanos)}). Para avanzar DEBES ganarles.";
 
             textoBriefingTitulo.text = $"<color={PaletaVoidform.Hex(db.ColorAcento)}>{n.Titulo}</color>";
             textoBriefingCuerpo.text =
@@ -799,8 +821,12 @@ namespace VoidformBioForge
             RectTransform c = CrearPantalla(EstadoFlujoJuego.Controles, "Controles", "Teclado y ratón (Input Manager clásico de Unity).", true);
             Text izquierda = FabricaInterfaz.CrearTexto(c, "Destructor",
                 $"<size=30><b><color={PaletaVoidform.Hex(PaletaVoidform.Destructor)}>DESTRUCTOR (1.ª persona)</color></b></size>\n\n" +
-                "WASD · moverse\nRatón · apuntar\nEspacio · saltar (con margen de coyote y búfer)\nClic izquierdo · disparar\nR · recargar\n" +
-                "E · habilidad del traje\nQ · habilidad del arma\n1 / 2 / rueda · arma principal / pistola\nClic o Tab (muerto en 4vs4) · cambiar a quién espectear\nEsc · pausa",
+                "WASD · moverse\nRatón · apuntar\nEspacio · saltar (con margen de coyote y búfer)\n" +
+                "Clic izquierdo · atacar (combo cuerpo a cuerpo, disparo o soltar flecha)\n" +
+                "Clic derecho · bloquear (mandoble/escudo), tensar (arco) o apuntar con zoom (rifle)\nR · recargar (rifle y arsenal)\n" +
+                "Z / X / C · habilidades de armadura (corta / media / larga)\nE / Q / F · habilidades del arma (corta / media / larga)\n" +
+                "Clic o Tab (muerto) · cambiar a quién espectear\nEsc · pausa\n\n" +
+                "<color=#A9B4C8>Apunta a los núcleos brillantes de los guardianes: daño crítico (marcador amarillo). Golpes pesados vacían el aguante y provocan tambaleo.</color>",
                 24, PaletaVoidform.TextoPrincipal, TextAnchor.UpperLeft);
             FabricaInterfaz.Anclar((RectTransform)izquierda.transform, 0f, 0f, 0.48f, 1f);
             Text derecha = FabricaInterfaz.CrearTexto(c, "Guardián",

@@ -97,29 +97,47 @@ namespace VoidformBioForge
     }
 
     /// <summary>
-    /// Trajes especializados de los Destructores. Cada uno contrarresta un elemento
-    /// y es vulnerable a otro, formando un ciclo de balance.
+    /// Los 5 arquetipos humanos de la expedición. Cada uno es una armadura con 3 habilidades
+    /// (corta Z, media X, larga C) y estadísticas propias.
     /// </summary>
-    public enum TipoTraje
+    public enum TipoArquetipo
     {
-        CineticoAsalto,
-        TermicoIgnifugo,
-        HidrostaticoAnclado,
-        SismicoBlindado,
-        PodadorBiotecnico
+        Cazador,
+        Paladin,
+        Bastion,
+        Tirador,
+        Ciborg
     }
 
     /// <summary>
-    /// Armas reestructuradas a partir del ciclo clásico de arena shooter
-    /// (pistola, subfusil, rifle, escopeta y precisión) con nombres e identidad propios.
+    /// Las 5 armas modulares, combinables con cualquier arquetipo. Cada una tiene un ataque básico
+    /// y 3 habilidades (corta E, media Q, larga F).
     /// </summary>
-    public enum TipoArma
+    public enum TipoArmaModular
     {
-        PistolaAuxiliar,
-        SubfusilRafaga,
-        RifleExtractor,
-        EscopetaDispersora,
-        RiflePrecision
+        ArcoCompuesto,
+        Mandoble,
+        MazaEscudo,
+        RifleLargo,
+        ArsenalBiomecanico
+    }
+
+    /// <summary>Acciones de combate que el animador procedural representa.</summary>
+    public enum TipoAccionCombate
+    {
+        GolpeHorizontal,
+        GolpeDiagonal,
+        Estocada,
+        GolpeDescendente,
+        Disparo,
+        TensarArco,
+        SoltarFlecha,
+        Recarga,
+        HabilidadCorta,
+        HabilidadMedia,
+        HabilidadLarga,
+        Bloqueo,
+        Tambaleo
     }
 
     /// <summary>

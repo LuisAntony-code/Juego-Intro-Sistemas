@@ -163,8 +163,8 @@ namespace VoidformBioForge
             return true;
         }
 
-        public void ElegirTraje(TipoTraje traje) => configuracion.trajeDestructor = traje;
-        public void ElegirArma(TipoArma arma) => configuracion.armaPrincipal = arma;
+        public void ElegirArquetipo(TipoArquetipo arquetipo) => configuracion.arquetipo = arquetipo;
+        public void ElegirArmaModular(TipoArmaModular arma) => configuracion.armaModular = arma;
         public void ElegirElemento(TipoElemento elemento) => configuracion.elementoGuardian = elemento;
         public void ElegirBiomaVersus(int indice) => configuracion.indiceBiomaVersus = Mathf.Clamp(indice, -1, 5);
         public void ElegirVarianteGuardian(RolGuardian rol) => configuracion.varianteGuardian = rol;
@@ -358,8 +358,8 @@ namespace VoidformBioForge
                 bool esRealRemoto = !comp.JugadorEsGuardian && i > 0 && i < comp.HumanosReales;
                 string nombre = esLocal ? "Tú" : esRealRemoto ? $"Amigo {i}" : $"[Bot] {GestorSalasYEmparejamiento.ObtenerNombreBot(BandoJuego.Destructor, i + nivel)}";
 
-                TipoTraje traje = esLocal ? configuracion.trajeDestructor : comp.TrajeBotsHumanos;
-                TipoArma arma = esLocal ? configuracion.armaPrincipal : ArmaVariada(i);
+                TipoArquetipo traje = esLocal ? configuracion.arquetipo : (i % 2 == 0 ? comp.ArquetipoBotsHumanos : (TipoArquetipo)((i + nivel) % 5));
+                TipoArmaModular arma = esLocal ? configuracion.armaModular : ArmaVariada(i + nivel);
                 float dificultad = comp.JugadorEsGuardian ? comp.DificultadBots : configuracion.dificultadBots;
 
                 SistemaSaludYTraje h = CrearDestructor(nombre, esLocal, ctx.Arena.AparicionDestructores[i], ctx.Arena, traje, arma,
@@ -423,8 +423,8 @@ namespace VoidformBioForge
             {
                 bool esLocal = configuracion.bandoJugador == BandoJuego.Destructor && i == 0;
                 string nombre = esLocal ? "Tú" : $"[Bot] {GestorSalasYEmparejamiento.ObtenerNombreBot(BandoJuego.Destructor, i + desfase)}";
-                TipoTraje traje = esLocal ? configuracion.trajeDestructor : (TipoTraje)((i + desfase) % 5);
-                TipoArma arma = esLocal ? configuracion.armaPrincipal : ArmaVariada(i + desfase);
+                TipoArquetipo traje = esLocal ? configuracion.arquetipo : (TipoArquetipo)((i + desfase) % 5);
+                TipoArmaModular arma = esLocal ? configuracion.armaModular : ArmaVariada(i + desfase);
                 SistemaSaludYTraje d = CrearDestructor(nombre, esLocal, ctx.Arena.AparicionDestructores[i], ctx.Arena, traje, arma,
                     objetivo, configuracion.dificultadBots, fuente);
                 ctx.EquipoDestructores.Add(d);
@@ -445,16 +445,16 @@ namespace VoidformBioForge
             }
         }
 
-        private static TipoArma ArmaVariada(int indice)
+        private static TipoArmaModular ArmaVariada(int indice)
         {
-            TipoArma[] opciones = { TipoArma.RifleExtractor, TipoArma.SubfusilRafaga, TipoArma.EscopetaDispersora, TipoArma.RiflePrecision };
-            return opciones[Mathf.Abs(indice) % opciones.Length];
+            // Los bots reparten las 5 armas para que cada escuadrón mezcle distancias.
+            return (TipoArmaModular)(Mathf.Abs(indice) % 5);
         }
 
         private void AsignarLocal(ContextoPartida ctx, SistemaSaludYTraje entidad)
         {
             ctx.JugadorLocal = entidad;
-            ctx.ArmasLocal = entidad.GetComponent<SistemaArmasYTrajeDestructor>();
+            ctx.CombateLocal = entidad.GetComponent<SistemaCombateArquetipo>();
             ctx.GuardianLocal = entidad.GetComponent<ControladorGuardianElemental>();
             ctx.EstadosLocal = entidad.GetComponent<SistemaEstadosAlterados>();
         }
@@ -479,23 +479,24 @@ namespace VoidformBioForge
         }
 
         private SistemaSaludYTraje CrearDestructor(string nombre, bool esLocal, Vector3 posicion, DescripcionArena arena,
-            TipoTraje tipoTraje, TipoArma tipoArma, ObjetivoBot objetivo, float dificultad, Vector3 fuente)
+            TipoArquetipo tipoArquetipo, TipoArmaModular tipoArma, ObjetivoBot objetivo, float dificultad, Vector3 fuente)
         {
             GameObject go = CrearBasePersonaje(nombre, false, posicion, arena);
-            DatosTraje traje = DatosTraje.CrearPorDefecto(tipoTraje);
+            DatosArquetipo arquetipo = DatosArquetipo.CrearPorDefecto(tipoArquetipo);
+            DatosArmaModular arma = DatosArmaModular.CrearPorDefecto(tipoArma);
 
-            ConstructorModelosPersonajes.ConstruirDestructor(go.transform, traje.colorTraje, esLocal);
+            ConstructorModelosPersonajes.ConstruirHumano(go.transform, arquetipo, arma, esLocal);
 
             SistemaSaludYTraje salud = go.AddComponent<SistemaSaludYTraje>();
             salud.ConfigurarIdentidad(nombre, BandoJuego.Destructor, esLocal);
-            salud.AsignarTraje(traje);
+            salud.AsignarArquetipo(arquetipo);
 
             ControladorMovimientoAssaultCube mov = go.AddComponent<ControladorMovimientoAssaultCube>();
-            mov.EstablecerMultiplicadorTraje(traje.multiplicadorVelocidad);
             go.AddComponent<SistemaEstadosAlterados>();
 
-            SistemaArmasYTrajeDestructor armas = go.AddComponent<SistemaArmasYTrajeDestructor>();
-            armas.ConfigurarArsenal(DatosArma.CrearPorDefecto(tipoArma), DatosArma.CrearPorDefecto(TipoArma.PistolaAuxiliar));
+            SistemaCombateArquetipo combate = go.AddComponent<SistemaCombateArquetipo>();
+            combate.Configurar(arquetipo, arma);
+            go.AddComponent<AnimadorProcedural>();
 
             if (esLocal) go.AddComponent<EntradaJugadorLocal>();
             else go.AddComponent<ControladorBotIA>().Configurar(objetivo, dificultad, fuente);
@@ -511,7 +512,7 @@ namespace VoidformBioForge
         {
             GameObject go = CrearBasePersonaje(nombre, true, posicion, arena);
             DatosGuardianElemental datos = rotaElementos ? DatosGuardianElemental.CrearNexus(elemento, rol) : DatosGuardianElemental.CrearVariante(elemento, rol);
-            ConstructorModelosPersonajes.ConstruirGuardian(go.transform, elemento, datos.colorPrimario, datos.colorSecundario);
+            ConstructorModelosPersonajes.ConstruirGuardian(go.transform, elemento, rol, datos.colorPrimario, datos.colorSecundario);
 
             SistemaSaludYTraje salud = go.AddComponent<SistemaSaludYTraje>();
             salud.ConfigurarIdentidad(nombre, BandoJuego.Cuidador, esLocal);
@@ -521,6 +522,8 @@ namespace VoidformBioForge
             go.AddComponent<SistemaEstadosAlterados>();
 
             ControladorGuardianElemental guardian = go.AddComponent<ControladorGuardianElemental>();
+            PuntoDebil.Configurar(go, elemento);
+            salud.ConfigurarAguante(rol == RolGuardian.Vanguardia ? 100f : rol == RolGuardian.Control ? 70f : 50f);
             guardian.EstablecerRotacionElementos(rotaElementos);
             guardian.ConfigurarGuardian(elemento, rol);
             guardian.EstablecerModoVersus(modoVersus);
@@ -532,6 +535,7 @@ namespace VoidformBioForge
             if (esLocal) go.AddComponent<EntradaJugadorLocal>();
             else go.AddComponent<ControladorBotIA>().Configurar(objetivo, dificultad, fuente);
 
+            go.AddComponent<AnimadorProcedural>();
             EtiquetaNombre.Crear(salud, 3.2f);
             salud.EstablecerPuntoAparicion(posicion, go.transform.rotation);
             salud.RefrescarCacheVisual();
@@ -567,7 +571,7 @@ namespace VoidformBioForge
                 camaraPrincipal.transform.localRotation = Quaternion.identity;
                 camaraPrincipal.fieldOfView = 80f;
                 camaraPrincipal.nearClipPlane = 0.05f;
-                if (ctx.ArmasLocal != null) ModeloArmaPrimeraPersona.Crear(camaraPrincipal.transform, ctx.ArmasLocal, mov);
+                if (ctx.CombateLocal != null) ModeloArmaPrimeraPersona.Crear(camaraPrincipal.transform, ctx.CombateLocal, mov);
             }
             else
             {

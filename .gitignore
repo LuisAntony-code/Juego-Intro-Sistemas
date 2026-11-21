@@ -41,3 +41,7 @@ crashlytics-build.properties
 # ---- Sistema operativo ----
 .DS_Store
 Thumbs.db
+
+# Caché de Python de las herramientas de Blender
+__pycache__/
+*.pyc

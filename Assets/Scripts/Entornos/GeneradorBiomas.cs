@@ -120,7 +120,11 @@ namespace VoidformBioForge
 
         private void ConstruirSueloYMuros()
         {
-            GameObject suelo = CrearBloque("Suelo", PrimitiveType.Cube, new Vector3(0f, -0.5f, 0f), new Vector3(MitadArena * 2f, 1f, MitadArena * 2f), Vector3.zero);
+            string superficieSuelo = datos.Bioma == BiomaPlaneta.BosqueSusurros ? "suelo_bosque"
+                : datos.Bioma == BiomaPlaneta.AbismosMareas ? "suelo_abismos"
+                : datos.Bioma == BiomaPlaneta.CalderaForjas ? "suelo_caldera"
+                : datos.Bioma == BiomaPlaneta.AgujasAleacion ? "suelo_agujas" : "suelo_nexus";
+            GameObject suelo = CrearBloque($"Suelo {superficieSuelo}", PrimitiveType.Cube, new Vector3(0f, -0.5f, 0f), new Vector3(MitadArena * 2f, 1f, MitadArena * 2f), Vector3.zero);
             RegistrarDegradable(suelo.GetComponent<Renderer>(), datos.ColorSuelo, datos.ColorSueloDegradado, Color.black);
 
             // Muros perimetrales con franja de runas luminosas.
@@ -518,7 +522,8 @@ namespace VoidformBioForge
         private void RegistrarDegradable(Renderer r, Color sano, Color degradado, Color emisionSana)
         {
             if (r == null) return;
-            MaterialesProcedurales.AplicarColor(r, sano, emisionSana);
+            // Material realista: la superficie se deduce del nombre (tronco → corteza, aguja → obsidiana...).
+            MaterialesProcedurales.AplicarMaterialRealista(r, sano, emisionSana);
             piezasDegradables.Add(new PiezaDegradable
             {
                 Renderizador = r,

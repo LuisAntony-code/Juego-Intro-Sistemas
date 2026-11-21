@@ -45,21 +45,21 @@ namespace VoidformBioForge.Herramientas
             Debug.Log($"[Voidform] Escena creada en {RutaEscena} y añadida a Build Settings. Pulsa Play para jugar.");
         }
 
-        [MenuItem("Voidform/2. Crear assets de datos (trajes, armas y guardianes)")]
+        [MenuItem("Voidform/2. Crear assets de datos (arquetipos, armas y guardianes)")]
         public static void CrearAssetsDeDatos()
         {
             if (!AssetDatabase.IsValidFolder(CarpetaDatos)) AssetDatabase.CreateFolder("Assets", "Datos");
-            foreach (string sub in new[] { "Trajes", "Armas", "Guardianes" })
+            foreach (string sub in new[] { "Arquetipos", "Armas", "Guardianes" })
             {
                 if (!AssetDatabase.IsValidFolder($"{CarpetaDatos}/{sub}")) AssetDatabase.CreateFolder(CarpetaDatos, sub);
             }
 
             for (int i = 0; i < 5; i++)
             {
-                DatosTraje t = DatosTraje.CrearPorDefecto((TipoTraje)i);
-                AssetDatabase.CreateAsset(t, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Trajes/{(TipoTraje)i}.asset"));
-                DatosArma a = DatosArma.CrearPorDefecto((TipoArma)i);
-                AssetDatabase.CreateAsset(a, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Armas/{(TipoArma)i}.asset"));
+                DatosArquetipo t = DatosArquetipo.CrearPorDefecto((TipoArquetipo)i);
+                AssetDatabase.CreateAsset(t, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Arquetipos/{(TipoArquetipo)i}.asset"));
+                DatosArmaModular a = DatosArmaModular.CrearPorDefecto((TipoArmaModular)i);
+                AssetDatabase.CreateAsset(a, AssetDatabase.GenerateUniqueAssetPath($"{CarpetaDatos}/Armas/{(TipoArmaModular)i}.asset"));
             }
             // Un asset por cada variante (vanguardia, control y artillería) de los 5 linajes jugables.
             foreach (TipoElemento elemento in UtilidadesTipos.ElementosJugables)

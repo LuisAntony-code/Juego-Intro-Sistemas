@@ -29,6 +29,7 @@ namespace VoidformBioForge
             texturaCirculoSuave = null;
             cacheParticulas.Clear();
             shaderOpacoCache = null;
+            cacheTexturas.Clear();
         }
 
         /// <summary>Verdadero si el proyecto usa un canal de render programable (URP/HDRP).</summary>
@@ -182,6 +183,135 @@ namespace VoidformBioForge
             }
 
             return materialParticulasBase;
+        }
+
+        // =====================================================================
+        // Materiales realistas con texturas PBR (generadas en Blender, en Resources/Texturas)
+        // =====================================================================
+
+        private struct PerfilSuperficie
+        {
+            public float Metalico;
+            public float Suavidad;
+            public float TamanoMosaico; // metros que cubre una repetición de la textura
+        }
+
+        private static readonly Dictionary<string, Texture2D> cacheTexturas = new Dictionary<string, Texture2D>();
+
+        private static PerfilSuperficie Perfil(string superficie)
+        {
+            switch (superficie)
+            {
+                case "acero": return new PerfilSuperficie { Metalico = 1f, Suavidad = 0.72f, TamanoMosaico = 0.6f };
+                case "hierro": return new PerfilSuperficie { Metalico = 1f, Suavidad = 0.45f, TamanoMosaico = 0.6f };
+                case "oro": return new PerfilSuperficie { Metalico = 1f, Suavidad = 0.8f, TamanoMosaico = 0.5f };
+                case "laton": return new PerfilSuperficie { Metalico = 1f, Suavidad = 0.7f, TamanoMosaico = 0.5f };
+                case "metal_placas": return new PerfilSuperficie { Metalico = 1f, Suavidad = 0.85f, TamanoMosaico = 4f };
+                case "obsidiana": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.93f, TamanoMosaico = 3f };
+                case "cristal": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.95f, TamanoMosaico = 1f };
+                case "piedra": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.4f, TamanoMosaico = 3f };
+                case "coral": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.35f, TamanoMosaico = 2f };
+                case "corteza": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.15f, TamanoMosaico = 2.5f };
+                case "madera": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.35f, TamanoMosaico = 0.6f };
+                case "cuero": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.3f, TamanoMosaico = 0.5f };
+                case "tela": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.08f, TamanoMosaico = 0.5f };
+                case "roca": return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.2f, TamanoMosaico = 4f };
+                default:
+                    if (superficie != null && superficie.StartsWith("suelo")) return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.15f, TamanoMosaico = 6f };
+                    return new PerfilSuperficie { Metalico = 0f, Suavidad = 0.35f, TamanoMosaico = 2f };
+            }
+        }
+
+        /// <summary>Carga una textura de Resources/Texturas (null si no existe; se guarda en caché).</summary>
+        public static Texture2D CargarTextura(string nombre)
+        {
+            if (cacheTexturas.TryGetValue(nombre, out Texture2D t)) return t;
+            t = Resources.Load<Texture2D>($"Texturas/{nombre}");
+            cacheTexturas[nombre] = t;
+            return t;
+        }
+
+        /// <summary>
+        /// Aplica un material realista: color base, metalicidad y suavidad por superficie y, si existen, las
+        /// texturas PBR horneadas en Blender (albedo de detalle en escala de grises + mapa de normales), con el
+        /// mosaico ajustado al tamaño real del objeto para que no se estiren.
+        /// </summary>
+        public static void AplicarMaterialRealista(Renderer r, Color color, Color emision, string superficie = null)
+        {
+            if (r == null) return;
+            AplicarColor(r, color, emision);
+            if (string.IsNullOrEmpty(superficie)) superficie = InferirSuperficie(r.name);
+            if (string.IsNullOrEmpty(superficie)) return;
+
+            Material m = r.material;
+            PerfilSuperficie perfil = Perfil(superficie);
+            if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", perfil.Metalico);
+            if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", perfil.Suavidad);
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", perfil.Suavidad);
+
+            Texture2D albedo = CargarTextura($"{superficie}_albedo");
+            Texture2D normal = CargarTextura($"{superficie}_normal");
+            if (albedo == null && normal == null) return;
+
+            Vector3 tamano = r.bounds.size;
+            float lado = Mathf.Max(0.05f, Mathf.Max(tamano.x, Mathf.Max(tamano.y, tamano.z)));
+            Vector2 mosaico = Vector2.one * Mathf.Max(1f, lado / perfil.TamanoMosaico);
+
+            if (albedo != null)
+            {
+                if (m.HasProperty("_BaseMap")) { m.SetTexture("_BaseMap", albedo); m.SetTextureScale("_BaseMap", mosaico); }
+                if (m.HasProperty("_MainTex")) { m.SetTexture("_MainTex", albedo); m.SetTextureScale("_MainTex", mosaico); }
+            }
+            if (normal != null && m.HasProperty("_BumpMap"))
+            {
+                m.SetTexture("_BumpMap", normal);
+                m.SetTextureScale("_BumpMap", mosaico);
+                if (m.HasProperty("_BumpScale")) m.SetFloat("_BumpScale", 1f);
+                m.EnableKeyword("_NORMALMAP");
+            }
+        }
+
+        /// <summary>
+        /// Deduce la superficie a partir del nombre del objeto o del material (los modelos de Blender usan
+        /// materiales llamados "VBF_corteza", "VBF_acero", "VBF_emisivo_verde"...).
+        /// </summary>
+        public static string InferirSuperficie(string nombre)
+        {
+            if (string.IsNullOrEmpty(nombre)) return null;
+            string n = nombre.ToLowerInvariant();
+            string[] claves =
+            {
+                "metal_placas", "obsidiana", "cristal", "corteza", "coral", "madera", "cuero", "tela", "acero", "hierro", "laton", "oro",
+                "piedra", "roca", "suelo_bosque", "suelo_abismos", "suelo_caldera", "suelo_agujas", "suelo_nexus"
+            };
+            foreach (string c in claves) if (n.Contains(c)) return c;
+            if (n.Contains("tronco") || n.Contains("raiz") || n.Contains("raíz")) return "corteza";
+            if (n.Contains("aguja de obsidiana")) return "obsidiana";
+            if (n.Contains("torre") || n.Contains("placa") || n.Contains("monolito")) return "metal_placas";
+            if (n.Contains("muro") || n.Contains("pilar") || n.Contains("pedestal") || n.Contains("columna") || n.Contains("fumarola")) return "piedra";
+            if (n.Contains("gambes") || n.Contains("capa") || n.Contains("faldon") || n.Contains("abrigo")) return "tela";
+            if (n.Contains("bota") || n.Contains("correa") || n.Contains("bandolera") || n.Contains("guante") || n.Contains("carcaj")) return "cuero";
+            if (n.Contains("hombrera") || n.Contains("peto") || n.Contains("greba") || n.Contains("rodillera")) return "acero";
+            return null;
+        }
+
+        /// <summary>Aplica los materiales realistas a todas las piezas de un modelo importado de Blender.</summary>
+        public static void AplicarMaterialesPorNombre(GameObject raiz)
+        {
+            foreach (Renderer r in raiz.GetComponentsInChildren<Renderer>(true))
+            {
+                Material original = r.sharedMaterial;
+                string nombreMaterial = original != null ? original.name : r.name;
+                Color color = original != null && original.HasProperty("_Color") ? original.color
+                    : original != null && original.HasProperty("_BaseColor") ? original.GetColor("_BaseColor") : Color.gray;
+                string n = nombreMaterial.ToLowerInvariant();
+                if (n.Contains("emisivo"))
+                {
+                    AplicarColor(r, color, color * 2.5f);
+                    continue;
+                }
+                AplicarMaterialRealista(r, color, Color.black, InferirSuperficie(nombreMaterial) ?? InferirSuperficie(r.name));
+            }
         }
 
         /// <summary>Material simple sin iluminación para líneas (trazadores, anillos).</summary>

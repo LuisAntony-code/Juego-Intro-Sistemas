@@ -26,6 +26,9 @@ namespace VoidformBioForge
         // ---------- Botones mantenidos ----------
         public bool AtaquePrincipalMantenido { get; set; }
 
+        /// <summary>Clic derecho mantenido: bloquear (espada, escudo), apuntar (arco, rifle) o cañón de pulso.</summary>
+        public bool AtaqueSecundarioMantenido { get; set; }
+
         // ---------- Pulsos de un fotograma ----------
         public bool SaltoPresionado { get; set; }
         public bool AtaquePrincipalPresionado { get; set; }
@@ -34,6 +37,26 @@ namespace VoidformBioForge
         public bool Habilidad2Presionada { get; set; }
         public bool HabilidadEspecialPresionada { get; set; }
         public bool CambiarElementoPresionado { get; set; }
+
+        // Humanos: habilidades de armadura (Z corta, X media, C larga).
+        public bool HabilidadArmaduraCorta { get; set; }
+        public bool HabilidadArmaduraMedia { get; set; }
+        public bool HabilidadArmaduraLarga { get; set; }
+
+        // Humanos: habilidades del arma. Comparten teclas con las de los guardianes (E, Q, F).
+        public bool HabilidadArmaCorta => Habilidad1Presionada;
+        public bool HabilidadArmaMedia => HabilidadEspecialPresionada;
+        public bool HabilidadArmaLarga => CambiarElementoPresionado;
+
+        private float bloqueadaHasta = -1f;
+
+        /// <summary>Verdadero mientras un tambaleo impide actuar.</summary>
+        public bool BloqueadaPorTambaleo => Time.time < bloqueadaHasta;
+
+        public void BloquearDurante(float segundos)
+        {
+            bloqueadaHasta = Mathf.Max(bloqueadaHasta, Time.time + segundos);
+        }
 
         /// <summary>Índice de arma solicitado (0 principal, 1 secundaria) o -1 si no se pidió cambio.</summary>
         public int CambioArmaSolicitado { get; set; } = -1;
@@ -56,6 +79,9 @@ namespace VoidformBioForge
             Habilidad2Presionada = false;
             HabilidadEspecialPresionada = false;
             CambiarElementoPresionado = false;
+            HabilidadArmaduraCorta = false;
+            HabilidadArmaduraMedia = false;
+            HabilidadArmaduraLarga = false;
             CambioArmaSolicitado = -1;
         }
 
@@ -65,6 +91,7 @@ namespace VoidformBioForge
             Movimiento = Vector2.zero;
             GiroMirada = Vector2.zero;
             AtaquePrincipalMantenido = false;
+            AtaqueSecundarioMantenido = false;
         }
     }
 }

@@ -26,11 +26,11 @@ namespace VoidformBioForge
         // -------------------------------------------------------------
         // Nivel 2 — Personalización y reglas
         // -------------------------------------------------------------
-        [Tooltip("Traje elegido cuando el jugador es Destructor.")]
-        public TipoTraje trajeDestructor = TipoTraje.CineticoAsalto;
+        [Tooltip("Arquetipo humano (armadura + 3 habilidades) cuando el jugador es Destructor.")]
+        public TipoArquetipo arquetipo = TipoArquetipo.Paladin;
 
-        [Tooltip("Arma principal elegida cuando el jugador es Destructor.")]
-        public TipoArma armaPrincipal = TipoArma.RifleExtractor;
+        [Tooltip("Arma modular (combinable con cualquier arquetipo) cuando el jugador es Destructor.")]
+        public TipoArmaModular armaModular = TipoArmaModular.Mandoble;
 
         [Tooltip("Elemento elegido cuando el jugador es Cuidador en modos versus.")]
         public TipoElemento elementoGuardian = TipoElemento.Arbol;

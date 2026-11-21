@@ -41,7 +41,7 @@ namespace VoidformBioForge
         public float MultiplicadorVidaGuardianesIA;
         public float MultiplicadorDanoGuardianesIA;
         public float DificultadBots;
-        public TipoTraje TrajeBotsHumanos;
+        public TipoArquetipo ArquetipoBotsHumanos;
 
         public string DescribirGuardianes()
         {
@@ -75,7 +75,7 @@ namespace VoidformBioForge
     ///     Derrota = los 4 humanos eliminados (en Historia nadie reaparece; quien cae espectea a su equipo).
     ///   • Muerte simultánea del último de cada bando (ventana de 0,25 s) = EMPATE: se repite el nivel.
     ///   • Escalado por nivel: los guardianes IA ganan vida y daño; los bots humanos ganan precisión y, desde el
-    ///     nivel 2, eligen el traje que contrarresta al elemento del escenario (los humanos "aprenden").
+    ///     nivel 2, eligen el arquetipo que mejor resiste al elemento del escenario (los humanos "aprenden").
     ///   • Se guarda la integridad ecológica de cada nivel; al completar el nivel 6 se muestra el desenlace.
     /// </summary>
     public class GestorModoHistoria : MonoBehaviour
@@ -200,7 +200,7 @@ namespace VoidformBioForge
                 MultiplicadorVidaGuardianesIA = 1f,
                 MultiplicadorDanoGuardianesIA = 1f,
                 DificultadBots = Mathf.Clamp01(0.35f + 0.1f * (nivel - 1)),
-                TrajeBotsHumanos = nivel == 1 || nivel >= 5 ? TipoTraje.CineticoAsalto : DatosTraje.TrajeContrario(principal)
+                ArquetipoBotsHumanos = nivel == 1 || nivel >= 5 ? TipoArquetipo.Cazador : DatosArquetipo.ArquetipoContrario(principal)
             };
 
             if (bando == BandoJuego.Destructor)

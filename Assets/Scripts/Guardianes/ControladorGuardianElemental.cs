@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -80,6 +81,22 @@ namespace VoidformBioForge
         public event Action<string> AlLanzarHabilidadElemental;
         public event Action<string, float, float> AlFaltarMana;
         public event Action<int, float, float> AlCambiarEnfriamiento;
+        /// <summary>Empieza la anticipación de una habilidad (ranura y duración): para animación y HUD.</summary>
+        public event Action<int, float> AlIniciarAnticipacion;
+        /// <summary>La habilidad de la ranura se ejecuta (fotograma de impacto).</summary>
+        public event Action<int> AlEjecutarHabilidad;
+        public event Action<string> AlSobrecarga;
+
+        // ---------- Anticipación, sobrecarga y levitación ----------
+        private Coroutine anticipacionEnCurso;
+        private GameObject telegrafoActual;
+        private float ataquesBloqueadosHasta = -1f;
+        private float sobrecargaDanoHasta = -1f;
+        private bool radioReducidoPendiente;
+        private readonly List<float> usosRecientes = new List<float>();
+        private readonly List<float> rotacionesRecientes = new List<float>();
+
+        public bool EstaAnticipando => anticipacionEnCurso != null;
 
         private void Awake()
         {
@@ -211,6 +228,9 @@ namespace VoidformBioForge
 
         private void ManejarReaparicion(SistemaSaludYTraje _)
         {
+            if (anticipacionEnCurso != null) StopCoroutine(anticipacionEnCurso);
+            anticipacionEnCurso = null;
+            if (telegrafoActual != null) Destroy(telegrafoActual);
             manaActual = manaMaximo;
             for (int i = 0; i < 4; i++) enfriamientosRestantes[i] = 0f;
             AlCambiarMana?.Invoke(manaActual, manaMaximo);
@@ -258,6 +278,7 @@ namespace VoidformBioForge
         /// <summary>Consulta sin consumir (la usa la IA para decidir).</summary>
         public bool PuedeLanzar(int slot)
         {
+            if (anticipacionEnCurso != null || Time.time < ataquesBloqueadosHasta) return false;
             if (enfriamientosRestantes[slot] > 0f) return false;
             return !usarManaEnModoVersus || manaActual >= ObtenerCostoMana(slot);
         }
@@ -276,6 +297,13 @@ namespace VoidformBioForge
             if (usarManaEnModoVersus && costo > 0f)
             {
                 manaActual = Mathf.Max(0f, manaActual - costo);
+                if (manaActual <= 0.01f && elementoActual == TipoElemento.Agua)
+                {
+                    // Sobrecarga del Agua: sin maná, el cuerpo pierde densidad (más rápido pero más frágil).
+                    movimiento?.AplicarBonificacionVelocidad(1.1f, 2f);
+                    salud?.AplicarMultiplicadorTemporal(1.2f, 2f);
+                    AlSobrecarga?.Invoke("Densidad perdida: más rápido pero más frágil (2 s)");
+                }
                 AlCambiarMana?.Invoke(manaActual, manaMaximo);
             }
 
@@ -287,14 +315,22 @@ namespace VoidformBioForge
         private float DanoEfectivo(float dano)
         {
             float afinidad = afinidadBiomaActiva ? multiplicadorAfinidadDano : 1f;
-            return dano * afinidad * multiplicadorDanoJefe;
+            float sobrecarga = Time.time < sobrecargaDanoHasta ? 0.8f : 1f;
+            return dano * afinidad * multiplicadorDanoJefe * sobrecarga;
         }
 
         // ================== Nivel 1: ataque básico ==================
 
         public void LanzarAtaqueBasico()
         {
+            if (anticipacionEnCurso != null || Time.time < ataquesBloqueadosHasta) return;
             if (!PuedeConsumirManaYEnfriamiento(SlotAtaqueBasico, datosActuales.nombreAtaqueBasico)) return;
+            RegistrarUsoDeHabilidad();
+            IniciarAnticipacion(SlotAtaqueBasico, 0.15f, 0f, EjecutarAtaqueBasico);
+        }
+
+        private void EjecutarAtaqueBasico()
+        {
 
             float alcance = datosActuales.alcanceAtaqueBasico;
             List<SistemaSaludYTraje> objetivos = ObtenerEnemigosEnCono(alcance + 0.8f, 65f);
@@ -315,7 +351,14 @@ namespace VoidformBioForge
 
         public void LanzarHabilidadElemental1()
         {
+            if (anticipacionEnCurso != null || Time.time < ataquesBloqueadosHasta) return;
             if (!PuedeConsumirManaYEnfriamiento(SlotHabilidad1, datosActuales.nombreHabilidad1)) return;
+            RegistrarUsoDeHabilidad();
+            IniciarAnticipacion(SlotHabilidad1, 0.3f, RadioConSobrecarga(1f), EjecutarHabilidadElemental1);
+        }
+
+        private void EjecutarHabilidadElemental1()
+        {
 
             switch (elementoActual)
             {
@@ -372,7 +415,14 @@ namespace VoidformBioForge
 
         public void LanzarHabilidadElemental2()
         {
+            if (anticipacionEnCurso != null || Time.time < ataquesBloqueadosHasta) return;
             if (!PuedeConsumirManaYEnfriamiento(SlotHabilidad2, datosActuales.nombreHabilidad2)) return;
+            RegistrarUsoDeHabilidad();
+            IniciarAnticipacion(SlotHabilidad2, 0.25f, RadioConSobrecarga(1.1f), EjecutarHabilidadElemental2);
+        }
+
+        private void EjecutarHabilidadElemental2()
+        {
 
             switch (elementoActual)
             {
@@ -426,7 +476,14 @@ namespace VoidformBioForge
 
         public void LanzarHabilidadDefinitivaElemental()
         {
+            if (anticipacionEnCurso != null || Time.time < ataquesBloqueadosHasta) return;
             if (!PuedeConsumirManaYEnfriamiento(SlotDefinitiva, datosActuales.nombreDefinitiva)) return;
+            RegistrarUsoDeHabilidad();
+            IniciarAnticipacion(SlotDefinitiva, 0.6f, RadioConSobrecarga(1.5f), EjecutarHabilidadDefinitivaElemental);
+        }
+
+        private void EjecutarHabilidadDefinitivaElemental()
+        {
 
             float radio = radioEfecto * 1.5f;
             float dano = DanoEfectivo(danoBaseHabilidad * 1.8f);
@@ -468,6 +525,7 @@ namespace VoidformBioForge
             FabricaEfectosVisuales.CrearEfectoElemental(elementoActual, transform.position, radio);
             FabricaEfectosVisuales.CrearAnilloOnda(transform.position + Vector3.up * 0.2f, radio, PaletaVoidform.ColorElemento(elementoActual));
             AlLanzarHabilidadElemental?.Invoke($"Definitiva — {datosActuales.nombreDefinitiva} ({UtilidadesTipos.NombreElemento(elementoActual)})");
+            AplicarSobrecargaTrasDefinitiva();
         }
 
         /// <summary>Nexus (niveles 5 y 6): el guardián cambia al siguiente elemento conservando su porcentaje de vida.</summary>
@@ -479,8 +537,111 @@ namespace VoidformBioForge
             int indice = Array.IndexOf(UtilidadesTipos.ElementosPrimarios, elementoActual);
             TipoElemento siguiente = UtilidadesTipos.ElementosPrimarios[(indice + 1) % UtilidadesTipos.ElementosPrimarios.Length];
             AplicarElemento(siguiente, false, true);
+            GetComponent<PuntoDebil>()?.Exponer(1.5f);
+            rotacionesRecientes.Add(Time.time);
+            rotacionesRecientes.RemoveAll(t => Time.time - t > 10f);
+            if (rotacionesRecientes.Count >= 2)
+            {
+                radioReducidoPendiente = true;
+                AlSobrecarga?.Invoke("Gema-nexo sobrecalentada: la próxima habilidad tendrá un 30% menos de radio");
+            }
             FabricaEfectosVisuales.CrearAnilloOnda(transform.position + Vector3.up * 0.2f, 4f, PaletaVoidform.ColorElemento(siguiente));
             AlLanzarHabilidadElemental?.Invoke($"{datosActuales.nombreGuardian} adopta la forma de {UtilidadesTipos.NombreElemento(siguiente)}");
+        }
+
+        // ================== Anticipación legible y sobrecarga ==================
+
+        private float RadioConSobrecarga(float factor)
+        {
+            return radioEfecto * factor * (radioReducidoPendiente ? 0.7f : 1f);
+        }
+
+        /// <summary>
+        /// Anticipación: postura y círculo en el suelo (del color del elemento) que se llena hasta el impacto.
+        /// El maná y el enfriamiento ya se gastaron: si el guardián es interrumpido, la habilidad se pierde.
+        /// </summary>
+        private void IniciarAnticipacion(int ranura, float duracion, float radioTelegrafo, Action efecto)
+        {
+            AlIniciarAnticipacion?.Invoke(ranura, duracion);
+            if (radioTelegrafo > 0.5f)
+            {
+                telegrafoActual = TelegrafoHabilidad.Crear(transform, radioTelegrafo, duracion, PaletaVoidform.ColorElemento(elementoActual),
+                    elementoActual == TipoElemento.Fuego && ranura == SlotHabilidad1);
+            }
+            anticipacionEnCurso = StartCoroutine(RutinaAnticipacion(ranura, duracion, efecto));
+        }
+
+        private IEnumerator RutinaAnticipacion(int ranura, float duracion, Action efecto)
+        {
+            yield return new WaitForSeconds(duracion);
+            anticipacionEnCurso = null;
+            if (telegrafoActual != null) Destroy(telegrafoActual);
+            if (salud != null && salud.EstaMuerto) yield break;
+
+            float radioOriginal = radioEfecto;
+            bool reducir = radioReducidoPendiente && ranura != SlotAtaqueBasico;
+            if (reducir) radioEfecto *= 0.7f;
+            efecto?.Invoke();
+            if (reducir)
+            {
+                radioEfecto = radioOriginal;
+                radioReducidoPendiente = false;
+            }
+            AlEjecutarHabilidad?.Invoke(ranura);
+        }
+
+        /// <summary>Interrumpe la habilidad en carga (Tiro a articulación, Golpe de yunque, tambaleo). Devuelve si había algo que cancelar.</summary>
+        public bool CancelarAnticipacion(string motivo)
+        {
+            if (anticipacionEnCurso == null) return false;
+            StopCoroutine(anticipacionEnCurso);
+            anticipacionEnCurso = null;
+            if (telegrafoActual != null) Destroy(telegrafoActual);
+            FabricaEfectosVisuales.CrearImpacto(transform.position + Vector3.up * 2f, Vector3.up, Color.white);
+            AlSobrecarga?.Invoke($"Habilidad interrumpida ({motivo})");
+            return true;
+        }
+
+        private void RegistrarUsoDeHabilidad()
+        {
+            if (elementoActual != TipoElemento.Tierra) return;
+            // Sobrecarga del Gólem: 3 habilidades en menos de 6 s ahogan la chimenea 2 s.
+            usosRecientes.Add(Time.time);
+            usosRecientes.RemoveAll(t => Time.time - t > 6f);
+            if (usosRecientes.Count >= 3)
+            {
+                usosRecientes.Clear();
+                ataquesBloqueadosHasta = Time.time + 2f;
+                FabricaEfectosVisuales.CrearAmbienteBioma(transform, transform.position + new Vector3(-0.7f, 3.2f, -0.2f), new Color(0.1f, 0.1f, 0.1f), 0.4f, -0.3f);
+                AlSobrecarga?.Invoke("Chimenea ahogada: sin atacar 2 s");
+            }
+        }
+
+        private void AplicarSobrecargaTrasDefinitiva()
+        {
+            switch (elementoActual)
+            {
+                case TipoElemento.Arbol:
+                    salud?.AplicarMultiplicadorTemporal(1.15f, 3f);
+                    AlSobrecarga?.Invoke("Corteza opaca: +15% de daño recibido (3 s)");
+                    break;
+                case TipoElemento.Fuego:
+                    sobrecargaDanoHasta = Time.time + 3f;
+                    salud?.AnadirBlindajeTemporal(30f);
+                    AlSobrecarga?.Invoke("Magma enfriado: −20% de daño, +30 de blindaje (3 s)");
+                    break;
+                case TipoElemento.Metal:
+                    AnularLevitacion(2f);
+                    AlSobrecarga?.Invoke("Campo invertido: sin levitación y más lento (2 s)");
+                    break;
+            }
+        }
+
+        /// <summary>Apaga la levitación magnética (sobrecarga del Metal o Pulso de riel humano) y frena al guardián.</summary>
+        public void AnularLevitacion(float segundos)
+        {
+            GetComponent<SistemaEstadosAlterados>()?.AplicarRalentizacion(0.85f, segundos);
+            foreach (LevitacionMagnetica l in GetComponentsInChildren<LevitacionMagnetica>()) l.Suspender(segundos);
         }
 
         // ================== Utilidades de área ==================

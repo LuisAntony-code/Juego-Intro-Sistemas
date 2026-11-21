@@ -71,6 +71,7 @@ namespace VoidformBioForge
         private GameObject panelGuardian;
         private Text textoElemento;
         private RanuraHabilidad[] ranurasDestructor;
+        private BarraInterfaz barraCargaArco;
         private RanuraHabilidad[] ranurasGuardian;
 
         // Centro
@@ -193,9 +194,14 @@ namespace VoidformBioForge
 
         private RanuraHabilidad CrearRanura(Transform padre, string tecla, Color color, float x)
         {
+            return CrearRanura(padre, tecla, color, x, 128f);
+        }
+
+        private RanuraHabilidad CrearRanura(Transform padre, string tecla, Color color, float x, float ancho)
+        {
             RanuraHabilidad r = new RanuraHabilidad();
             r.Fondo = FabricaInterfaz.CrearPanel(padre, $"Ranura {tecla}", new Color(color.r * 0.3f, color.g * 0.3f, color.b * 0.3f, 0.95f));
-            FabricaInterfaz.Colocar((RectTransform)r.Fondo.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(x, 14f), new Vector2(128f, 92f));
+            FabricaInterfaz.Colocar((RectTransform)r.Fondo.transform, new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(x, 14f), new Vector2(ancho, 92f));
             r.Enfriamiento = FabricaInterfaz.CrearBarra(r.Fondo.transform, "Enfriamiento", new Color(0f, 0f, 0f, 0f), new Color(0f, 0f, 0f, 0.65f), 20, true);
             FabricaInterfaz.Anclar(r.Enfriamiento.Raiz, 0f, 0f, 1f, 1f);
             r.Enfriamiento.Establecer(0f, "");
@@ -203,6 +209,10 @@ namespace VoidformBioForge
             FabricaInterfaz.Anclar((RectTransform)r.Tecla.transform, 0f, 0f, 1f, 1f, 8f, 4f, 8f, 4f);
             r.Nombre = FabricaInterfaz.CrearTexto(r.Fondo.transform, "Nombre", "", 14, PaletaVoidform.TextoPrincipal, TextAnchor.MiddleCenter);
             FabricaInterfaz.Anclar((RectTransform)r.Nombre.transform, 0f, 0.2f, 1f, 0.8f, 6f, 0f, 6f, 0f);
+            r.Nombre.resizeTextForBestFit = true;
+            r.Nombre.resizeTextMinSize = 10;
+            r.Nombre.resizeTextMaxSize = 14;
+            r.Nombre.verticalOverflow = VerticalWrapMode.Truncate;
             r.Detalle = FabricaInterfaz.CrearTexto(r.Fondo.transform, "Detalle", "", 13, PaletaVoidform.TextoSecundario, TextAnchor.LowerCenter);
             FabricaInterfaz.Anclar((RectTransform)r.Detalle.transform, 0f, 0f, 1f, 0.3f, 4f, 4f, 4f, 0f);
             return r;
@@ -217,11 +227,16 @@ namespace VoidformBioForge
             FabricaInterfaz.Anclar((RectTransform)textoArma.transform, 0f, 1f, 1f, 1f, 18f, -40f, 18f, 12f);
             textoMunicion = FabricaInterfaz.CrearTexto(panel.transform, "Munición", "", 46, PaletaVoidform.TextoPrincipal, TextAnchor.UpperRight, FontStyle.Bold);
             FabricaInterfaz.Anclar((RectTransform)textoMunicion.transform, 0.45f, 1f, 1f, 1f, 0f, -100f, 18f, 38f);
-            ranurasDestructor = new[]
+            // 6 ranuras: armadura Z X C (naranja) y arma E Q F (dorado).
+            string[] teclas = { "Z", "X", "C", "E", "Q", "F" };
+            ranurasDestructor = new RanuraHabilidad[6];
+            for (int i = 0; i < 6; i++)
             {
-                CrearRanura(panel.transform, "E", PaletaVoidform.Destructor, 18f),
-                CrearRanura(panel.transform, "Q", PaletaVoidform.Disputa, 158f)
-            };
+                ranurasDestructor[i] = CrearRanura(panel.transform, teclas[i], i < 3 ? PaletaVoidform.Destructor : PaletaVoidform.Disputa, 12f + i * 90f + (i >= 3 ? 8f : 0f), 84f);
+            }
+            barraCargaArco = FabricaInterfaz.CrearBarra(padre, "Carga del arco", new Color(0f, 0f, 0f, 0.5f), PaletaVoidform.Cuidador, 14);
+            FabricaInterfaz.Colocar(barraCargaArco.Raiz, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(160f, 10f));
+            barraCargaArco.EstablecerVisible(false);
         }
 
         private void ConstruirPanelGuardian(RectTransform padre)
@@ -367,28 +382,34 @@ namespace VoidformBioForge
                 desuscripciones.Add(() => e.AlCambiarEstados -= ManejarEstadosAlterados);
             }
 
-            if (ctx.ArmasLocal != null)
+            if (ctx.CombateLocal != null)
             {
-                SistemaArmasYTrajeDestructor a = ctx.ArmasLocal;
-                a.AlCambiarMunicion += ManejarMunicion;
-                a.AlCambiarArma += ManejarCambioArma;
-                a.AlCambiarEnfriamientoTraje += ManejarEnfriamientoTraje;
-                a.AlCambiarEnfriamientoArma += ManejarEnfriamientoArma;
+                SistemaCombateArquetipo a = ctx.CombateLocal;
+                a.AlCambiarRecurso += ManejarRecurso;
+                a.AlCambiarArma += ManejarCambioArmaModular;
+                a.AlCambiarEnfriamiento += ManejarEnfriamientoHumano;
                 a.AlActivarHabilidad += ManejarHabilidadActivada;
                 a.AlConfirmarImpacto += ManejarImpactoConfirmado;
+                a.AlAviso += ManejarAviso;
                 desuscripciones.Add(() =>
                 {
-                    a.AlCambiarMunicion -= ManejarMunicion;
-                    a.AlCambiarArma -= ManejarCambioArma;
-                    a.AlCambiarEnfriamientoTraje -= ManejarEnfriamientoTraje;
-                    a.AlCambiarEnfriamientoArma -= ManejarEnfriamientoArma;
+                    a.AlCambiarRecurso -= ManejarRecurso;
+                    a.AlCambiarArma -= ManejarCambioArmaModular;
+                    a.AlCambiarEnfriamiento -= ManejarEnfriamientoHumano;
                     a.AlActivarHabilidad -= ManejarHabilidadActivada;
                     a.AlConfirmarImpacto -= ManejarImpactoConfirmado;
+                    a.AlAviso -= ManejarAviso;
                 });
-                DatosTraje traje = s.Traje;
-                ranurasDestructor[0].Nombre.text = traje != null ? traje.nombreHabilidad : "Traje";
+                for (int i = 0; i < 6; i++)
+                {
+                    ranurasDestructor[i].Nombre.text = a.NombreRanura(i);
+                    ranurasDestructor[i].Detalle.text = "";
+                }
                 a.ForzarNotificacionCompleta();
             }
+
+            s.AlTambalear += ManejarTambaleoPropio;
+            desuscripciones.Add(() => s.AlTambalear -= ManejarTambaleoPropio);
 
             if (ctx.GuardianLocal != null)
             {
@@ -398,8 +419,10 @@ namespace VoidformBioForge
                 g.AlCambiarElemento += ManejarCambioElemento;
                 g.AlFaltarMana += ManejarFaltaMana;
                 g.AlLanzarHabilidadElemental += ManejarHabilidadActivada;
+                g.AlSobrecarga += ManejarAviso;
                 desuscripciones.Add(() =>
                 {
+                    g.AlSobrecarga -= ManejarAviso;
                     g.AlCambiarMana -= ManejarMana;
                     g.AlCambiarEnfriamiento -= ManejarEnfriamientoGuardian;
                     g.AlCambiarElemento -= ManejarCambioElemento;
@@ -544,28 +567,36 @@ namespace VoidformBioForge
             textoEstadosAlterados.text = descripcion;
         }
 
-        private void ManejarMunicion(int cargador, int tamano, int reserva, bool recargando)
+        private void ManejarRecurso(string texto, float porcentaje)
         {
-            textoMunicion.text = recargando
-                ? $"<color={PaletaVoidform.Hex(PaletaVoidform.Disputa)}>RECARGANDO</color>"
-                : $"{(cargador <= Mathf.Max(1, tamano / 5) ? $"<color={PaletaVoidform.Hex(PaletaVoidform.Alerta)}>{cargador}</color>" : cargador.ToString())}<size=26> / {tamano}  ·  {reserva}</size>";
+            textoMunicion.text = porcentaje <= 0.2f && texto.Length > 0 && char.IsDigit(texto[0])
+                ? $"<color={PaletaVoidform.Hex(PaletaVoidform.Alerta)}>{texto}</color>"
+                : texto;
         }
 
-        private void ManejarCambioArma(DatosArma arma)
+        private void ManejarCambioArmaModular(DatosArmaModular arma)
         {
-            if (arma == null) return;
-            textoArma.text = arma.nombreArma.ToUpperInvariant();
-            ranurasDestructor[1].Nombre.text = arma.nombreHabilidad;
+            if (arma == null || contexto == null || contexto.CombateLocal == null) return;
+            DatosArquetipo arquetipo = contexto.CombateLocal.Arquetipo;
+            textoArma.text = $"{(arquetipo != null ? arquetipo.nombre.Split('/')[0].Trim().ToUpperInvariant() + "  ·  " : "")}{arma.nombre.ToUpperInvariant()}";
         }
 
-        private void ManejarEnfriamientoTraje(float restante, float total)
+        private void ManejarEnfriamientoHumano(int ranura, float restante, float total)
         {
-            ActualizarRanura(ranurasDestructor[0], restante, total, true);
+            if (ranura < 0 || ranura >= ranurasDestructor.Length) return;
+            ActualizarRanura(ranurasDestructor[ranura], restante, total, true);
         }
 
-        private void ManejarEnfriamientoArma(float restante, float total)
+        private void ManejarAviso(string aviso)
         {
-            ActualizarRanura(ranurasDestructor[1], restante, total, true);
+            textoAvisoMana.text = aviso;
+            finAvisoMana = Time.unscaledTime + 1.8f;
+            AgregarRegistro($"<color={PaletaVoidform.Hex(PaletaVoidform.Disputa)}>{aviso}</color>");
+        }
+
+        private void ManejarTambaleoPropio(float duracion)
+        {
+            MostrarBanner($"<color={PaletaVoidform.Hex(PaletaVoidform.Disputa)}>¡TAMBALEADO!</color>", duracion + 0.3f);
         }
 
         private void ManejarHabilidadActivada(string nombre)
@@ -573,10 +604,11 @@ namespace VoidformBioForge
             AgregarRegistro($"<color={PaletaVoidform.Hex(PaletaVoidform.Disputa)}>» {nombre}</color>");
         }
 
-        private void ManejarImpactoConfirmado(bool fueBaja)
+        private void ManejarImpactoConfirmado(bool fueBaja, bool critico)
         {
-            finMarcadorImpacto = Time.unscaledTime + (fueBaja ? 0.45f : 0.15f);
-            textoMarcadorImpacto.color = fueBaja ? PaletaVoidform.Alerta : Color.white;
+            finMarcadorImpacto = Time.unscaledTime + (fueBaja ? 0.45f : critico ? 0.3f : 0.15f);
+            textoMarcadorImpacto.color = fueBaja ? PaletaVoidform.Alerta : critico ? PaletaVoidform.Disputa : Color.white;
+            textoMarcadorImpacto.fontSize = critico ? 54 : 40;
         }
 
         private void ManejarMana(float mana, float maximo)
@@ -819,6 +851,15 @@ namespace VoidformBioForge
 
             // Aviso de maná insuficiente.
             textoAvisoMana.color = new Color(PaletaVoidform.Mana.r, PaletaVoidform.Mana.g, PaletaVoidform.Mana.b, Mathf.Clamp01((finAvisoMana - ahora) / 0.4f));
+
+            // Carga del arco y camuflaje del Cazador.
+            if (contexto != null && contexto.CombateLocal != null && barraCargaArco != null)
+            {
+                SistemaCombateArquetipo c = contexto.CombateLocal;
+                barraCargaArco.EstablecerVisible(c.CargandoArco);
+                if (c.CargandoArco) barraCargaArco.Establecer(c.CargaArco, c.CargaArco >= 1f ? "MÁXIMA" : "");
+                if (c.Camuflado) textoEstadosAlterados.text = "CAMUFLADO (los guardianes no te ven a más de 12 m)";
+            }
 
             // Viñeta de daño.
             intensidadVineta = Mathf.MoveTowards(intensidadVineta, 0f, Time.unscaledDeltaTime * 0.8f);

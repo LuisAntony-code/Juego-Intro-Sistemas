@@ -15,7 +15,7 @@ namespace VoidformBioForge
         public GestorEquilibrioEcosistema Ecosistema;
 
         public SistemaSaludYTraje JugadorLocal;
-        public SistemaArmasYTrajeDestructor ArmasLocal;
+        public SistemaCombateArquetipo CombateLocal;
         public ControladorGuardianElemental GuardianLocal;
         public SistemaEstadosAlterados EstadosLocal;
         public CamaraEspectador Espectador;
