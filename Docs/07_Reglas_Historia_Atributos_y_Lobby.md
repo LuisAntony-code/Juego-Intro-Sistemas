@@ -1,6 +1,6 @@
 # 07 · Reglas de enfrentamiento del Modo Historia, atributos base y lobby
 
-> **Estado:** todo lo de este documento **está implementado en el código**. Composición: `GestorModoHistoria.GuardianesDefensores` y `ParejaDelJugadorGuardian`. Atributos: `DatosGuardianElemental` y `DatosTraje`. Coordinación: `ControladorBotIA.DestinoGuardianPorRol`. Lobby: `GestorInterfazJuego` y `DatosArchivoMundo`.
+> **Estado:** todo lo de este documento **está implementado en el código**. Composición: `GestorModoHistoria.GuardianesDefensores` y `ParejaDelJugadorGuardian`. Atributos: `DatosGuardianElemental` y `DatosArquetipo`. Coordinación: `ControladorBotIA.DestinoGuardianPorRol`. Lobby: `GestorInterfazJuego` y `DatosArchivoMundo`.
 
 ---
 

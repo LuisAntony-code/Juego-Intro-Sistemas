@@ -2,8 +2,8 @@
 
 > **Qué está implementado y qué es producción artística.**
 > - **Implementado en código:** los 6 escenarios (con aproximación procedural de cada uno), las 5 fuentes con forma propia, la gravedad reducida del Nexus, las auroras, los peligros por facción, los 5 linajes × 3 variantes de guardián (vida, blindaje, velocidad, radio y alcance por rol), la composición de cada nivel, la coordinación de la IA por roles y la rotación de elementos del Nexus.
-> - **Producción artística (este documento lo especifica):** los modelos y materiales realistas, las animaciones por rango y los efectos finales.
-> - **Diseño todavía no implementado como mecánica:** el **núcleo o punto débil**, la **estabilidad** y la **sobrecarga** de cada guardián se muestran como texto en el Archivo del mundo, pero aún no alteran el daño. El apartado 2.7 explica cómo implementarlos.
+> - **Implementado también como mecánica:** el **núcleo o punto débil** (`PuntoDebil.cs`, daño crítico ×1,5), la **estabilidad** (aguante y tambaleo en `SistemaSaludYTraje`) y la **sobrecarga** de cada linaje (`ControladorGuardianElemental`, aviso en el HUD), además de la **anticipación telegrafiada** de cada habilidad (`TelegrafoHabilidad.cs`), que los humanos pueden cancelar con golpes de aturdimiento. El apartado 2.7 conserva el diseño original como referencia.
+> - **Modelos 3D:** cada linaje tiene un modelo generado en Blender (`Assets/Resources/Modelos/Guardianes/*.fbx`, ver Doc 10) con el núcleo luminoso en el pecho y la silueta de su escenario; se anima con el `AnimadorProcedural`. Las animaciones por rango y los efectos finales descritos aquí siguen siendo la guía para la producción artística definitiva.
 >
 > **Kit de habilidades por linaje.** Las 3 variantes de un linaje comparten el kit elemental (golpe básico, E, R y Q). El rol cambia su vida, blindaje, radio y alcance:
 
@@ -477,13 +477,13 @@ En el prototipo, el modelo ya tiene placa frontal, remaches, chimenea con llama 
 
 ---
 
-## 2.7 Implementar la estabilidad, los puntos débiles y la sobrecarga (siguiente paso técnico)
+## 2.7 Estabilidad, puntos débiles y sobrecarga (diseño original; ya implementado)
 
 Para que los textos de diseño se conviertan en mecánica, en este orden:
 
 1. **Puntos débiles:**
    - Añade a cada modelo de guardián un `Collider` disparador (*trigger*) en la posición del núcleo, con un componente `PuntoDebil` (multiplicador × 1,5 y condición de exposición: siempre, al cargar, tras rotar...).
-   - En `SistemaArmasYTrajeDestructor.ProcesarImpactoEnEntidad`, cuando el rayo atraviese ese disparador (usa `QueryTriggerInteraction.Collide` en un segundo `Raycast`), multiplica el daño y muestra un marcador de impacto crítico.
+   - (Diseño original, escrito para el sistema de armas de fuego retirado; hoy lo resuelve `PuntoDebil` dentro de `SistemaCombateArquetipo`.) En el procesado del impacto, cuando el rayo atraviese ese disparador (usa `QueryTriggerInteraction.Collide` en un segundo `Raycast`), multiplica el daño y muestra un marcador de impacto crítico.
 2. **Estabilidad:**
    - Añade a `SistemaSaludYTraje` un contador de "aguante" (*poise*): 100 en los guardianes de vanguardia, 70 en control y 50 en artillería. Cada golpe lo reduce según su tipo (explosivo ×3, cargado ×2) y se regenera a 25 por segundo.
    - Si llega a 0, el personaje **se tambalea** 0,8 s: entrada deshabilitada, animación de tambaleo y **cancela la anticipación** de cualquier habilidad en curso.

@@ -15,10 +15,11 @@ Todo el código está en el espacio de nombres `VoidformBioForge` (las herramien
 | `Combate/` | `ControladorMovimientoAssaultCube.cs` | Movimiento ágil, salto con coyote y búfer, cámara, empujes, enraizado, retroceso y apuntado de los bots |
 | | `SistemaSaludYTraje.cs` | Vida, blindaje, resistencias, **explosión del traje**, muerte, reaparición y registro estático de entidades |
 | | `SistemaEstadosAlterados.cs` | Ralentizado, Enraizado, Quemadura y Empujado, con inmunidades |
-| | `SistemaArmasYTrajeDestructor.cs` | Arsenal, disparo por rayo, recarga, dispersión, retroceso y habilidades de traje y arma |
-| | `DatosArma.cs`, `DatosTraje.cs` | ScriptableObjects con el catálogo oficial (`CrearPorDefecto`) |
+| | `SistemaCombateArquetipo.cs` | Combate humano: combos cuerpo a cuerpo con impacto diferido, flechas y proyectiles balísticos, rayo del rifle, bloqueo, munición y las 6 habilidades (Z X C del arquetipo, E Q F del arma) |
+| | `DatosArquetipo.cs`, `DatosArmaModular.cs` | ScriptableObjects con los 5 arquetipos y las 5 armas modulares (`CrearPorDefecto`), con `FichaHabilidad` |
+| | `ProyectilBalistico.cs`, `BarreraEnergia.cs`, `PuntoDebil.cs` | Flechas y ondas con caída y barrido, barreras (Égida, Postura de bastión) y núcleos de los guardianes (crítico ×1,5) |
 | | `InformacionDano.cs` | Estructura de un golpe (cantidad, tipo, atacante, origen) |
-| | `ModeloArmaPrimeraPersona.cs` | Arma visible en 1.ª persona con retroceso, balanceo y animación de recarga |
+| | `ModeloArmaPrimeraPersona.cs` | Arma visible en 1.ª persona: tajos en tres tiempos, tensado del arco, bloqueo, apuntado, retroceso y recarga |
 | `Guardianes/` | `DatosGuardianElemental.cs` | 5 linajes × 3 variantes (vanguardia, control y artillería) y los Custodios del Nexus |
 | | `ControladorGuardianElemental.cs` | Golpe básico, 3 habilidades, **maná**, enfriamientos, afinidad, jefe de nivel y rotación de elementos |
 | | `MuroDeRocaElemental.cs` | Muro temporal del Gólem de Chimenea (Muralla de Escoria) |
@@ -37,7 +38,12 @@ Todo el código está en el espacio de nombres `VoidformBioForge` (las herramien
 | | `ZonaAmbientalBioma.cs` | Peligro que afecta distinto a cada facción |
 | | `FuenteEnergiaViva.cs` | Núcleo central: extracción, disputa y visual según la integridad |
 | | `GestorEquilibrioEcosistema.cs` | Integridad del ecosistema y energía extraída |
-| `Modelos/` | `ConstructorModelosPersonajes.cs` | Modelos provisionales de humanos y guardianes + `ModeloVisualPersonaje` + `LevitacionMagnetica` |
+| `Modelos/` | `ConstructorModelosPersonajes.cs` | Carga los modelos de Blender (`Resources/Modelos`) o, si faltan, arma el modelo de primitivas con el mismo esqueleto + `ModeloVisualPersonaje` + `LevitacionMagnetica` |
+| | `ConstructorModelosArmas.cs` | Modelos de las armas, el escudo y el cañón de pulso (Blender o primitivas) |
+| | `AlineadorModeloImportado.cs` | Orienta los FBX con sus marcadores y reconstruye el esqueleto con ejes limpios (Doc 10) |
+| | `AnimadorProcedural.cs` | Locomoción, combos, habilidades, tambaleo y muerte animados por código sobre el esqueleto |
+| `VFX/` | `TelegrafoHabilidad.cs` | Aviso en el suelo de las habilidades de los guardianes durante su anticipación |
+| `Editor/` | `MenuVoidformEditor.cs`, `ImportadorRecursosVoidform.cs` | Menú "Voidform" (escena, assets de datos) y ajustes automáticos de importación de texturas y FBX |
 | `VFX/` | `MaterialesProcedurales.cs` | Materiales compatibles con Built-in, URP y HDRP |
 | | `FabricaEfectosVisuales.cs` | Todos los VFX + `AutodestruirTrasTiempo`, `LuzEfimera`, `LineaDesvanecida`, `AnilloOndaExpansivo` y `SacudidaCamara` |
 | `Interfaz/` | `FabricaInterfaz.cs` | Lienzo, paneles redondeados, textos, botones, barras y campos |
@@ -69,7 +75,7 @@ Interfaz (botón Iniciar)
          7. IrA(EnPartida) ─► cursor capturado, entrada desbloqueada
 ```
 
-**Cada personaje** se ensambla así: `CharacterController` + `EntradaPersonaje` + modelo + `SistemaSaludYTraje` + `ControladorMovimientoAssaultCube` + `SistemaEstadosAlterados` + (`SistemaArmasYTrajeDestructor` **o** `ControladorGuardianElemental`) + (`EntradaJugadorLocal` **o** `ControladorBotIA`) + `EtiquetaNombre`.
+**Cada personaje** se ensambla así: `CharacterController` + `EntradaPersonaje` + modelo + `SistemaSaludYTraje` + `ControladorMovimientoAssaultCube` + `SistemaEstadosAlterados` + (`SistemaCombateArquetipo` **o** `ControladorGuardianElemental`) + (`EntradaJugadorLocal` **o** `ControladorBotIA`) + `EtiquetaNombre`.
 
 **Orden de ejecución:** `GestorFlujoPartida` (−300) → `EntradaPersonaje` (−200, solo limpia en `LateUpdate`) → `EntradaJugadorLocal` y `ControladorBotIA` (−100, escriben intenciones) → movimiento, armas y guardianes (0, leen intenciones) → `EntradaPersonaje.LateUpdate` limpia los pulsos de un fotograma.
 
@@ -81,8 +87,8 @@ Interfaz (botón Iniciar)
 
 | Emisor | Evento | Oyentes |
 |---|---|---|
-| `SistemaSaludYTraje` | `AlCambiarSaludYBlindaje`, `AlCambiarAlertaTrajeCritico`, `AlRecibirDano`, `AlExplotarTrajeHumano`, `AlMorir`, `AlRevivir` | HUD; `GestorConquista5Bases` (reaparición); `GestorModo4vs4` y `GestorModoHistoria` (fin de ronda o nivel); `SistemaArmas` y `ControladorGuardian` (recargar al revivir) |
-| `SistemaArmasYTrajeDestructor` | `AlCambiarMunicion`, `AlCambiarArma`, `AlCambiarEnfriamientoTraje/Arma`, `AlActivarHabilidad`, `AlConfirmarImpacto`, `AlDisparar` | HUD; `ModeloArmaPrimeraPersona` |
+| `SistemaSaludYTraje` | `AlCambiarSaludYBlindaje`, `AlCambiarAlertaTrajeCritico`, `AlRecibirDano`, `AlExplotarTrajeHumano`, `AlMorir`, `AlRevivir` | HUD; `GestorConquista5Bases` (reaparición); `GestorModo4vs4` y `GestorModoHistoria` (fin de ronda o nivel); `SistemaCombateArquetipo` y `ControladorGuardian` (recargar al revivir) |
+| `SistemaCombateArquetipo` | `AlCambiarRecurso`, `AlCambiarArma`, `AlCambiarEnfriamiento` (ranuras 0–5), `AlActivarHabilidad`, `AlConfirmarImpacto(baja, crítico)`, `AlAccion`, `AlAviso` | HUD; `ModeloArmaPrimeraPersona` y `AnimadorProcedural` (`AlAccion`) |
 | `ControladorGuardianElemental` | `AlCambiarMana`, `AlCambiarEnfriamiento`, `AlCambiarElemento`, `AlFaltarMana`, `AlLanzarHabilidadElemental` | HUD |
 | `SistemaEstadosAlterados` | `AlCambiarEstados` | HUD |
 | `ZonaCapturaBase` | `AlCambiarEstadoBase`, `AlCambiarProgreso` | `GestorConquista5Bases`; HUD |
@@ -106,8 +112,8 @@ Interfaz (botón Iniciar)
 
 | Quiero... | Pasos |
 |---|---|
-| Un traje nuevo | Añadir un valor a `TipoTraje`, un `case` en `DatosTraje.CrearPorDefecto` y otro en `SistemaArmasYTrajeDestructor.IntentarActivarHabilidadTraje`. Después, cambiar el bucle de 5 trajes de `GestorInterfazJuego.ConstruirPersonalizacion` y el `% 5` de `GestorFlujoPartida.CrearEquiposVersus` (variedad de los bots). |
-| Un arma nueva | Añadir un valor a `TipoArma`, un `case` en `DatosArma.CrearPorDefecto` y otro en `IntentarActivarHabilidadArma`, y añadirla al vector `armas` de `ConstruirPersonalizacion`. |
+| Un arquetipo nuevo | Añadir un valor a `TipoArquetipo`, un `case` en `DatosArquetipo.CrearPorDefecto` y otro en `SistemaCombateArquetipo.HabilidadArmadura`. Después, cambiar el bucle de 5 arquetipos de `GestorInterfazJuego.ConstruirPersonalizacion` y los `% 5` de `GestorFlujoPartida` (variedad de los bots). Para su modelo, añadir una función en `Herramientas/Blender/vbf_humanos.py` (Doc 10). |
+| Un arma nueva | Añadir un valor a `TipoArmaModular`, un `case` en `DatosArmaModular.CrearPorDefecto` y otro en `SistemaCombateArquetipo.HabilidadArma`, y ajustar el bucle de 5 armas de `ConstruirPersonalizacion`. Su modelo va en `Herramientas/Blender/vbf_armas.py`. |
 | Un elemento o guardián nuevo | Añadir un valor a `TipoElemento`, su ficha en `DatosGuardianElemental` y los `case` en las 3 habilidades de `ControladorGuardianElemental`. |
 | Un sexto nivel | Subir `totalNiveles` y los `Clamp(…, 1, 5)`, añadir un `BiomaPlaneta` y su `DatosBioma`, y añadir un `case 6` en `DatosNarrativaHistoria.ObtenerNivel`. |
 | Un modo nuevo | Crear `GestorModoX` siguiendo el patrón: registrar participantes → evaluar → evento `AlFinalizar...(ResultadoEnfrentamiento, string)`. Construirlo en `GestorFlujoPartida.IniciarPartida` y vincular su HUD en `VincularPartida`. |

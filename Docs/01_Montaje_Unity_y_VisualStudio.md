@@ -19,8 +19,8 @@ Esta guía explica, de lo más simple a lo más complejo, cómo poner en marcha 
 
 1. Abre **Unity Hub → New project → plantilla "3D (Built-In Render Pipeline)"** o **"3D (URP)"** (las dos funcionan). Ponle el nombre `VoidformBioForge`.
 2. Cierra Unity.
-3. Copia la carpeta `Assets/Scripts` de este repositorio dentro de la carpeta `Assets` del proyecto nuevo. La estructura queda así: `VoidformBioForge/Assets/Scripts/Nucleo/...`.
-   - **Alternativa con Git:** clona el repositorio en una carpeta aparte y copia `Assets/Scripts` y `Docs`. También puedes copiar el `.gitignore` de este repositorio a la raíz del proyecto y versionarlo desde ahí.
+3. Copia las carpetas `Assets/Scripts` y `Assets/Resources` de este repositorio dentro de la carpeta `Assets` del proyecto nuevo. La estructura queda así: `VoidformBioForge/Assets/Scripts/Nucleo/...` y `VoidformBioForge/Assets/Resources/Modelos/...`. `Resources` contiene los modelos 3D (FBX) y las texturas PBR; si no la copias, el juego funciona igual pero con modelos de primitivas (Doc 10).
+   - **Alternativa con Git:** clona el repositorio en una carpeta aparte y copia `Assets/Scripts`, `Assets/Resources`, `Herramientas` y `Docs`. También puedes copiar el `.gitignore` de este repositorio a la raíz del proyecto y versionarlo desde ahí.
 4. Abre el proyecto con Unity Hub. Unity compila los scripts. La consola no debe mostrar errores.
 
 ### 1.3 Configurar la entrada (obligatorio en Unity 6)

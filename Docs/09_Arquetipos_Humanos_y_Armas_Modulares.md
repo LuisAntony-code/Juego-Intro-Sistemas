@@ -1,6 +1,6 @@
 # 09 · Los 5 arquetipos humanos, sus armaduras y las 5 armas modulares
 
-> **Estado.** Este documento es la **especificación de producción** del nuevo sistema humano. El prototipo jugable usa todavía los 5 trajes y las 5 armas de fuego de la versión 1 (`DatosTraje`, `DatosArma`, `SistemaArmasYTrajeDestructor`). El **apartado 3.3** explica cómo sustituirlos paso a paso por arquetipos y armas modulares, reutilizando lo que ya existe: salud, blindaje, estados alterados, explosión del traje, entrada unificada para jugadores y bots, VFX e interfaz. Los arquetipos ya aparecen en el Archivo del mundo del lobby.
+> **Estado: implementado.** Los 5 arquetipos (`DatosArquetipo.cs`) y las 5 armas modulares (`DatosArmaModular.cs`) son el sistema humano jugable: `SistemaCombateArquetipo.cs` ejecuta el ataque básico, el clic derecho y las 6 habilidades (Z X C de la armadura, E Q F del arma) para el jugador y para los bots; la personalización, el HUD (6 ranuras), el briefing y la pantalla de controles los muestran; y cada arquetipo y cada arma tienen modelo 3D de Blender (Doc 10). El apartado 3.3 conserva el plan de sustitución como registro de cómo se hizo; los antiguos trajes y armas de fuego (`DatosTraje`, `DatosArma`, `SistemaArmasYTrajeDestructor`) se eliminaron.
 >
 > **Escala de distancias** (común a armaduras y armas): **corta** de 0 a 5 m · **media** de 5 a 20 m · **larga** a más de 20 m.
 > **Regla de atributos:** todo arquetipo humano tiene **menos vida** que cualquier guardián (de 100 a 125, frente a 140–220) y es **un poco más rápido** (×0,95 a ×1,10, frente a ×0,87–0,92).
@@ -334,7 +334,7 @@ Las 3 habilidades de arma usan las teclas **E** (corta), **Q** (media) y **F** (
 
 ---
 
-## 3.3 Implementación paso a paso en el proyecto (siguiente iteración)
+## 3.3 Implementación paso a paso en el proyecto (registro de la sustitución, ya realizada)
 
 1. **Datos:**
    - Crea `DatosArquetipo` (ScriptableObject): nombre, vida, blindaje, velocidad, estabilidad, 3 habilidades (nombre, descripción, enfriamiento, tipo de efecto y parámetros) y color.
