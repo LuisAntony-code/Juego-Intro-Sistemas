@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BugBlaster · Operación Compilar</title>
+  <meta name="description" content="Juego de acción 2D para aprender Python: corre, salta, dispara y programa a tu robot.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="stage"><canvas id="game" width="960" height="544" aria-label="Juego BugBlaster"></canvas></div>
+  <div id="screens"></div>
+  <div id="challenge" class="hidden"></div>
+
+  <noscript>Este juego necesita JavaScript.</noscript>
+  <!-- Orden importante: intérprete → retos → audio → mundos → motor → dibujo → interfaz → arranque -->
+  <script src="js/pyinterp.js"></script>
+  <script src="js/challenges.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/challenge-ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

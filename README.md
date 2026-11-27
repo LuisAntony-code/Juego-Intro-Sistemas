@@ -55,3 +55,9 @@ La guía completa de montaje, Visual Studio, pruebas, compilación y problemas f
 - **Sin audio todavía.** El juego no tiene música ni efectos de sonido.
 - **Pruebas.** El código C# se ha verificado compilándolo contra los módulos de Unity fuera del editor; los modelos, contra un reimportado del FBX en Blender. Conviene hacer el recorrido de prueba del Doc 01 dentro de Unity antes de cualquier publicación.
 - **Belerick como arquetipo.** Los guardianes toman la idea de "tanque elemental de la naturaleza" con diseño, nombres y habilidades propios.
+
+---
+
+## BugBlaster: Operación Compilar (nuevo)
+
+Juego 2D de acción para **aprender Python** (correr, saltar, disparar y programar al robot). Es independiente de Voidform y vive en [`BugBlaster/`](BugBlaster/README.md): se abre con `BugBlaster/index.html`, sin instalar nada. El informe técnico con capturas está en [`BugBlaster/docs/Informe_BugBlaster.docx`](BugBlaster/docs/Informe_BugBlaster.docx).

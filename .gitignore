@@ -45,3 +45,6 @@ Thumbs.db
 # Caché de Python de las herramientas de Blender
 __pycache__/
 *.pyc
+
+# ---- BugBlaster: imágenes del informe (regenerables con BugBlaster/tools) ----
+BugBlaster/docs/img/
