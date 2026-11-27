@@ -140,7 +140,6 @@ body.push(
     ['Lenguaje enseñado', 'Python (ejecutado dentro del juego con un mini-intérprete propio)'],
     ['Tecnología', 'HTML5 + Canvas 2D + JavaScript puro. Sin librerías ni instalación: se abre con doble clic'],
     ['Fecha del informe', '27 de noviembre de 2026'],
-    ['Desarrollo', 'Programado con la asistencia de Claude Code'],
   ], [2300, 7060]),
 );
 
